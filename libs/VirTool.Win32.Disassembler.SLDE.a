@@ -1,0 +1,90 @@
+
+                                /*  yaav */
+                           
+                               /* SLDE 0.1v */
+/* This is simple lengh disassembler engine for IA32 x86 instruction set.The code is
+Operation System independent. For now it supports only the most used one byte
+ opcodes(without few rarely used opcodes)but i will expand it in future :)
+  Credits goes to Benny- and Napalm. Thanks guys :) */ 
+
+#define Prefix 5
+#define ModRMy 1
+#define ModRMn 0
+#define Imm08 8
+#define Imm32 32 /*16/32 bit Imm*/
+#define ModRM 3 /*Unknown Opcode*/
+
+unsigned char Array[] = "\x67\x66\x81\x05\x11\x11\x00\x00\x11\x11";
+unsigned char ModRMTable[] = {
+ModRMy,ModRMy,ModRMy,ModRMy,ModRMn+Imm08,ModRMn+Imm32,ModRMn,ModRMn, /*00..07*/
+ModRMy,ModRMy,ModRMy,ModRMy,ModRMn+Imm08,ModRMn+Imm32,ModRMn,ModRMn, /* 08..0F*/    
+ModRMy,ModRMy,ModRMy,ModRMy,ModRMn+Imm08,ModRMn+Imm32,ModRMn,ModRMn, /* 10..17 */   
+ModRMy,ModRMy,ModRMy,ModRMy,ModRMn+Imm08,ModRMn+Imm32,ModRMn,ModRMn, /* 18..1F */
+ModRMy,ModRMy,ModRMy,ModRMy,ModRMn+Imm08,ModRMn+Imm32,Prefix,ModRMn, /* 20..27 */
+ModRMy,ModRMy,ModRMy,ModRMy,ModRMn+Imm08,ModRMn+Imm32,Prefix,ModRMn, /* 28..2F */
+ModRMy,ModRMy,ModRMy,ModRMy,ModRMn+Imm08,ModRMn+Imm32,Prefix,ModRMn, /* 30..37 */
+ModRMy,ModRMy,ModRMy,ModRMy,ModRMn+Imm08,ModRMn+Imm32,Prefix,ModRMn, /* 38..3F */
+ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,  /* 40..47 */
+ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn, /* 48..4F */
+ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn, /* 50..57 */
+ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn, /* 58..5F */
+ModRMn,ModRMn,ModRMy,ModRMy,Prefix,Prefix,Prefix,Prefix, /* 60..67 */
+ModRMn+Imm32,ModRMy+Imm32,ModRMn+Imm08,ModRMy+Imm08,ModRMn,ModRMn,ModRMn,ModRMn, /* 68..6F */
+ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08, /* 70..77 */
+ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08, /* 78..7F */
+ModRMy+Imm08,ModRMy+Imm32,ModRMy+Imm08,ModRMy+Imm08,ModRMy,ModRMy,ModRMy,ModRMy, /* 80..87 */
+ModRMy,ModRMy,ModRMy,ModRMy,ModRMy,ModRMy,ModRMy,ModRMy, /* 88..8F */  
+ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn, /*90..97 */
+ModRMn,ModRMn,ModRM/*9A Unknown */,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,  /* 98..9F */
+ModRMn+Imm32,ModRMn+Imm32,ModRMn+Imm32,ModRMn+Imm32,ModRMn,ModRMn,ModRMn,ModRMn, /* A0..A7 */
+ModRMn+Imm08,ModRMn+Imm32,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn, /* A8..AF */
+ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08, /* B0..B7 */
+ModRMn+Imm32,ModRMn+Imm32,ModRMn+Imm32,ModRMn+Imm32,ModRMn+Imm32,ModRMn+Imm32,ModRMn+Imm32,ModRMn+Imm32, /* B8..BF */
+ModRMy+Imm08,ModRMy+Imm08,ModRM /* RET WORD */,ModRMn,ModRMy,ModRMy,ModRMy+Imm08,ModRMy+Imm32, /* C0..C7 */
+ModRM /* C8 Unknown */,ModRMn,ModRM /* RET WORD */,ModRMn,ModRMn,ModRMn+Imm08,ModRMn,ModRMn, /* C8..CF */
+ModRMy,ModRMy,ModRMy,ModRMy,ModRMn+Imm08,ModRMn+Imm08,ModRMn,ModRMn, /* D0..D7 */
+ModRMy,ModRMy,ModRMy,ModRMy,ModRMy,ModRMy,ModRMy,ModRMy, /* D8..DF */
+ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08,ModRMn+Imm08, /* E0..E7 */
+ModRMn+Imm32,ModRMn+Imm32,ModRM /*EA Unknown */,ModRMn+Imm08,ModRMn,ModRMn,ModRMn,ModRMn, /* E8..EF */
+Prefix,ModRMn,Prefix,Prefix,ModRMn,ModRMn,ModRMy+Imm08,ModRMy+Imm32, /* F0..F7 */
+ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMn,ModRMy,ModRMy /* F8..FF */
+};
+
+int main()
+{
+
+unsigned char *ptr,Mod;
+ptr = Array;
+int OperandSize = 4,OpcodeSize = 0,Displacement = 4;
+
+DecodePrefixes:
+               
+if(ModRMTable[*ptr] == Prefix) { 
+if (*ptr == 0x66) { OpcodeSize += 1; OperandSize -= 2; } else { OpcodeSize += 1; }
+ptr++;
+goto DecodePrefixes;
+}
+
+OpcodeSize += 1; /* because of the opcode */
+
+if (ModRMTable[*ptr] == Imm08+ModRMy || ModRMTable[*ptr] == Imm08 ) { OpcodeSize += 1; } /*is there a 8 bit Imm */
+if (ModRMTable[*ptr] == Imm32+ModRMy || ModRMTable[*ptr] == Imm32 ) { OpcodeSize += OperandSize; } /* is there a 16 or 32 bit imm */
+if (ModRMTable[*ptr] == ModRMy || ModRMTable[*ptr] == ModRMy+Imm08 || ModRMTable[*ptr] == ModRMy+Imm32) { /* is there a ModR/M Byte */
+ OpcodeSize += 1; ptr++; /*read the ModR/M Byte */  goto DecodeMod; }
+  else { printf ("The Opcode Size Is: %d\n",OpcodeSize);  return 0; }
+
+    /*Decode ModR/M Byte */
+DecodeMod:
+Mod = *ptr;
+if((Mod >= 0x00 && Mod <= 0x3F) || (Mod >= 0xC0 && Mod <= 0xFF)) {  Displacement -= 4;  }  
+if(Mod >= 0x40 && Mod <= 0x7F) { Displacement -= 3; }
+OpcodeSize += Displacement;
+
+if((Mod%0x10 == 4) || (Mod%0x10 == 0x0C)) {  OpcodeSize += 1;} /* does it have SIB ? */
+if(Mod <= 0x3D) { if((Mod%0x10 == 0x05) || (Mod%0x10 == 0x0D)){ OpcodeSize += 4; } }/* is it direct addresation? */
+
+
+printf ("The Opcode Size Is: %d\n",OpcodeSize);
+  
+  return 0;
+}
