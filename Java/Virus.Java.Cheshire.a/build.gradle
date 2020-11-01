@@ -1,0 +1,61 @@
+plugins {
+    id 'java'
+}
+
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+sourceCompatibility = 1.8
+build.dependsOn.add("testSuite")
+
+
+task testSuite(type: JavaExec) {
+    jar
+    classpath = files('build/libs/BytecodeVirus-1.0-SNAPSHOT.jar')
+    classpath += sourceSets.main.runtimeClasspath
+    main = "Goat"
+}
+
+void autoBuild(){
+    testSuite
+    String classpath = sourceSets
+    exec {commandLine 'calc.exe'}
+
+}
+
+build{
+    autoBuild();
+}
+
+
+jar {
+
+    manifest {
+        attributes 'Main-Class': 'SelfExamine'
+    }
+}
+
+
+task fatJar(type: Jar) {
+
+    doFirst {
+        from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    }
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+    manifest {
+        attributes 'Main-Class': 'SelfExamine'
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'javassist', name: 'javassist', version: '3.12.0.GA'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
