@@ -1,0 +1,140 @@
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³                                                                             ³
+³                    This Virus Came To You By Way Of...                      ³
+³                                                                             ³
+³         ÜÛÛÛÛÛÛÛÜ       ÜÛÛÛÛÛÛÛÛÜ        ÜÛÜ        ÜÛÛÛÛÛÛÛÜ              ³
+³        ÛÛÛÛß  ßÛÛÛ      ÛÛÛß   ßÛÛÛ      ÛÛÛÛÛ      ÛÛÛÛß ßÛÛÛÛ             ³
+³        ÛÛÛÛ             ÛÛÛÜ   ÜÛÛÛ      ÛÛÛÛÛ      ßÛÛÛÛÛÜÜ                ³
+³        ÛÛÛÛ             ÛÛÛÛÛÛÛÛÛß       ÛÛÛÛÛ         ßßÛÛÛÛÛÜ             ³
+³        ÛÛÛÛÜ  ÜÛÛÛ ÜÛÛÜ ÛÛÛÛ ßÛÛÛÛÜ ÜÛÛÜ ÛÛÛÛÛ ÜÛÛÜ ÛÛÛÛÜ ÜÛÛÛÛ ÜÛÛÜ        ³
+³         ßÛÛÛÛÛÛÛß  ßÛÛß ßÛÛß   ßÛÛß ßÛÛß  ßÛß  ßÛÛß  ßÛÛÛÛÛÛÛß  ßÛÛß        ³
+³                                                                             ³
+³                                                                             ³
+³                  Computer Research & Information Service                    ³
+³                                                                             ³
+³                                                                             ³
+³       Cris is a group of computer users that have a true interest in        ³
+³       Computer Viruses and Trojans, as well as how they work.               ³
+³                                                                             ³
+³       Members of Cris feel a need, not only to be up on the latest          ³
+³       Bombs, Trojans, Worms, and Viruses, but to safely transfer these      ³
+³       files into the hands of other dedicated researchers.                  ³
+³                                                                             ³
+³       Cris cannot be held responsible for the use or misuse of these        ³
+³       files.  Cris releases are sent out to better the knowledge of the     ³
+³       virus community, for those who would like to learn more about them    ³
+³       and how they work.                                                    ³
+³                                                                             ³
+³       Also, all Cris releases have been pre-tested and informative text     ³
+³       files are enclosed with valuable information regarding the type of    ³
+³       virus, how it works, and removal information.  If the virus you       ³
+³       downloaded is not a Cris release, you don't know what you've got.     ³
+³                                                                             ³
+³       DuWayne Bonkoski                                                      ³
+³       (Original Text Written By Michael Paris)                              ³
+³                                                                             ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Cris Release Date:12/18/93                                                  ³
+³ Type: Virus                                                                 ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ VSUM Information - Quoted from Patricia M. Hoffman's Hypertext VSUM         ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ No Information Found                                                        ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Scanning Results                                                            ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³                                                                             ³
+³ McAfee's ViruScan Reports         -  Detected [Flue]                        ³
+³   File had to be deleted                                                    ³
+³ F-Prot's ViruScan Reports         -  Detected [Flue]                        ³
+³   File had to be deleted                                                    ³
+³ TBAV's ViruScan Reports           -  Detected [Flue]                        ³    ³
+³   Successfully repaired executable                                          ³
+³                                                                             ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³ Researcher's Notes                                                          ³
+ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
+³ The FLUE virus is a polymorphic virus which infects COM files only.  The    ³
+³ FLUE virus has a very visible way to letting you know it has infected       ³
+³ a file.  The virus will "flip" a character screen from right to left or     ³
+³ vice versa.  The screen flip does not work on monochrome monitors, however, ³
+³ because the virus is hard-coded to read segment B800 which is where screen  ³
+³ information lies for color text modes.  Monochrome video lies in            ³
+³ the B000 segment and the virus does not have a routine to sense which       ³
+³ type of video is being used.                                                ³
+³                                                                             ³
+³ The virus hooks interrupt 24 (Critical Error Handler) which causes the      ³
+³ virus to replicate if a critical error occurs during execution.             ³
+³                                                                             ³
+³ The virus does not become memory resident as far as I can tell.             ³
+³                                                                             ³
+³ A character string can be found within the virus body which may appear      ³
+³ un-encrypted within infected files.  The string reads as follows:           ³
+³                                                                             ³
+³ Hatsjeee!! <C> 1992/1993 by TridenT / [DàRkRàY]Oh, BTW it's from Holland,   ³
+³ and is called the FLUEFor those who are interested......                    ³
+³                                                                             ³
+³                                                                             ³
+³ Encryption                                                                  ³
+³ ==========                                                                  ³
+³ The FLUE encrypts itself by XOR'ing the body of the virus with a            ³
+³ randomly generated word varaiable and then uses the variable's complement   ³
+³ on the next encryption cycle.                                               ³
+³                                                                             ³
+³                                                                             ³
+³ Infection                                                                   ³
+³ =========                                                                   ³
+³ The FLUE infects COM files having a length between 500 and 47987 bytes.     ³
+³ The virus does not check to see if the file has already been infected and   ³
+³ will attempt to re-infect an already infected file.                         ³
+³ The decryption routine the virus creates is very polymorphic.  The program  ³
+³ will randomly change which registers it uses to decrypt itself for each     ³
+³ infected file.                                                              ³
+³                                                                             ³
+³ The infected files grow by a varying number of bytes.  The virus            ³
+³ copies a random number of bytes from the zero page and appends them to      ³
+³ the end of the executable before infecting the file.  This is what causes   ³
+³ the random growth.                                                          ³
+³                                                                             ³
+³ Upon execution of an infected file, the virus will try to infect between    ³
+³ one and eight files plus one more for each directory it moves into.         ³
+³                                                                             ³
+³ An interesting note on how the virus appends itself to other COM files.     ³
+³ At first glance, the source codes does not show any significant file        ³
+³ write routines that are necessary to cause replication.  It took me         ³
+³ a while to figure out how the virus accomplished this.  It does this        ³
+³ by building it's own write routine as it runs in memory.  Just another      ³
+³ example of the polymorphic capabilities of this virus.                      ³
+³                                                                             ³
+³                                                                             ³
+³ Detection                                                                   ³
+³ =========                                                                   ³
+³ All scanners tested will detect this virus.                                 ³
+³                                                                             ³
+³ This virus can be detected using the following scan strings (for those      ³
+³ who are using older/other scan utilities):                                  ³
+³                                                                             ³
+³ 89?18B?1B94002?331?1F7?349                 - TBAV                           ³
+³ 89??8B??B94002??????31??F7??????49         - F-PROT                         ³
+³ 89?8B?B94002???31?F7???49                  - SCAN                           ³
+³                                                                             ³
+³                                                                             ³
+³ Summary                                                                     ³
+³ =======                                                                     ³
+³ I have to admit, the virus was a challenge for me due to it's polymorphic   ³
+³ capabilities. I had to step through it a couple of times to get a feel      ³
+³ for what was going on.  I'm not sure why all the polymorphism is used       ³
+³ in this particular strain since the visual cues easily let you know         ³
+³ something unusual is happening.  Otherwise, this virus is a pretty fast     ³
+³ replicator that wants to be noticed in its own little way.                  ³
+³                                                                             ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+

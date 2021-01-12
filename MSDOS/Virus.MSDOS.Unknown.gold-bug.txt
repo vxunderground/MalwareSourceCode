@@ -1,0 +1,161 @@
+Virus Name:  GOLD-BUG
+Aliases:     AU, GOLD, GOLD-FEVER, GOLD-MINE
+V Status:    New, Research
+Discovery:   January, 1994
+Symptoms:    CMOS checksum failure; Creates files with no extension; Modem
+	     answers on 7th ring; BSC but it is hidden; Most virus scanners
+	     fail to run or are Deleted; CHKLIST.??? files deleted.
+Origin:      USA
+Eff Length:  1,024 Bytes
+Type Code:   SBERaRbReX - Spawning Color Video Resident and Extended HMA
+	     Memory Resident Boot-Sector and Master-Sector Infector
+Detection Method:  None
+Removal Instructions:  See Below
+
+General Comments:
+
+	GOLD-BUG is a memory-resident multipartite polymorphic stealthing
+	boot-sector spawning anti-antivirus virus that works with DOS 5 and
+	DOS 6 in the HIMEM.SYS memory.  When an .EXE program infected with the
+	GOLD-BUG virus is run, it determines if it is running on an 80186 or
+	better, if not it will terminate and not install.  If it is on an
+	80186 or better it will copy itself to the partition table of the hard
+	disk and remain resident in memory in the HMA (High Memory Area) only
+	if the HMA is available, ie. DOS=HIGH in the CONFIG.SYS file else no
+	infection will occur.  The old partition table is moved to sector 14
+	and the remainder of the virus code is copied to sector 13.  The virus
+	then executes the spawned associated file if present.  INT 13 and
+	INT 2F are hooked into at this time but not INT 21.  The spawning
+	feature of this virus is not active now.
+
+	When the computer is rebooted, the virus goes memory resident in the
+	color video memory.  Also at this time the GOLD-BUG virus removes
+	itself from the partition table and restores the old one back.  Unlike
+	other boot-sector infectors, it does not use the top of memory to
+	store the code.  CHKDSK does not show a decrease in available memory.
+	At this time it only hooks INT 10 and monitors when the HMA becomes
+	available.  Once DOS moves into the HMA, then GOLD-BUG moves into the
+	HMA at address FFFF:FB00 to FFFF:FFFF.  If the HMA never becomes
+	available, ie. DOS loaded LOW or the F5 key hit in DOS 6 to bypass the
+	CONFIG.SYS, then the virus clears itself from the system memory when
+	the computer changes into graphics mode.  If it moves to the HMA, it
+	hooks INT 13, INT 21 and INT 2F and then rewrites itself back to the
+	partition table.  The GOLD-BUG virus also has some code that stays
+	resident in the interrupt vector table to always make the HMA
+	available to the virus.  The full features of the virus are now
+	active.
+
+	The GOLD-BUG virus will infect the boot sector of 1.2M diskettes.
+	The virus copies itself to the boot sector of the diskette and moves
+	a copy of the boot sector to sector 28 and the remainder of the code
+	is copied to sector 27.  These are the last 2 sectors of the 1.2M disk
+	root directory.  If there are file entries on sector 27 or 28 it will
+	not overwrite them with the virus code.  It will infect 1.2M disks in
+	drive A: or B:  If a clean boot disk is booted from drive A: and you
+	try to access C: you will get an invalid drive specification.
+
+	The boot-sector infection is somewhat unique.  If the computer is
+	booted with a disk that contains the GOLD-BUG virus, it will remain in
+	video memory until the HMA is available and then infect the hard disk.
+	Also at this time, it will remove itself from the 1.2M disk.  The
+	virus will never infect this disk again.  It makes tracking where you
+	got the virus from difficult in that your original infected disk is
+	not infected anymore.
+
+	If an .EXE file less than 64K and greater then 1.5K is executed,
+	GOLD-BUG will randomly decide to spawn a copy of it.  The .EXE file is
+	renamed to the same file name with no extension, ie. CHKDSK.EXE
+	becomes CHKDSK.  The original file attributes are then changed to
+	SYSTEM.  An .EXE file with the same name is created.  This .EXE file
+	has the same length, file date and attributes as the original .EXE
+	file.  This spawning process will not make a copy on a diskette
+	because it might be write protected and be detected; but it will make
+	a spawn .EXE file on a network drive.  When a spawned file is created,
+	CHKLIST.??? of the current directory is also deleted.  The .EXE file
+	that is created is actually a .COM file; it has no .EXE header.
+
+	The GOLD-BUG virus is very specific as to what type of .EXE files it
+	will spawn copies.  It will not spawn any Windows .EXE files or any
+	other .EXE files the use the new extended .EXE header except those
+	that use the PKLITE extended .EXE header.  This way all Windows
+	programs will continue to run and the virus will still be undetected.
+
+	The GOLD-BUG virus is also Polymorphic.  Each .EXE file it creates
+	only has 2 bytes that remain constant.  It can mutate into 128
+	different decription patterns.  It uses a double decription technique
+	that involves INT 3 that makes it very difficult to decript using a
+	debugger.  The assembly code allowed for 512 different front-end
+	decripters.  Each of these can mutate 128 different ways.
+
+	The GOLD-BUG virus incorporates an extensive steathing technique.  Any
+	time the hard disk partition table or boot sector of an infected
+	diskette is examined, the copy of the partition table or boot sector
+	is returned.  If a spawned .EXE file is opened to be read or executed;
+	the GOLD-BUG virus will redirect to the original file.  Windows 3.1
+	will detect a resident boot-sector virus if the "Use 32 Bit Access" is
+	enabled on the "Virtual Memory" option.  GOLD-BUG will disconnect
+	itself from the INT 13 chain when Windows installs and reconnect when
+	Windows uninstalles to avoid being detected.  When Windows starts, the
+	GOLD-BUG virus will copy the original hard disk partition table back.
+	When Windows ends, the GOLD-BUG virus will reinfect the partition
+	table.
+
+	The GOLD-BUG virus also has an extensive anti-antivirus routine.  It
+	can install itself with programs like VSAFE.COM and DISKMON.EXE
+	resident that monitor changes to the computer that are common for
+	viruses.  It writes to the disk using the original BIOS INT 13 and not
+	the INT 13 chain that these types of programs have hooked into.  It
+	hooks into the bottom of the interrupt chain rather than changing and
+	hooking interrupts; very similar to the tunneling technique.  If the
+	GOLD-BUG virus is resident in memory, any attempts to run most virus
+	scanners will be aborted.  GOLD-BUG stops any large .EXE file
+	(greater than 64k) with the last two letters of "AN" to "AZ".  It will
+	stop SCAN.EXE, CLEAN.EXE, NETSCAN.EXE, CPAV.EXE, MSAV.EXE, TNTAV.EXE,
+	etc., etc.  The SCAN program will either be deleted or an execution
+	error will return.  Also, GOLD-BUG will cause a CMOS checksum failure
+	to happen next time the system boots.  GOLD-BUG also erases
+	"CHKLIST.???" created by CPAV.EXE and MSAV.EXE.  Programs that do an
+	internal checksum on themselves will not detect any changes.  The
+	Thunder Byte Antivirus programs contain a partition table program that
+	claims it can detect all partition table viruses.  GOLD-BUG rides
+	right through the ThunderByte partition virus checker.
+
+	The GOLD-BUG virus detects a modem.  If you received an incoming call
+	on the modem line, GOLD-BUG will output a string that will set the
+	modem to answer on the seventh ring.
+
+	If a program tries to erase the infected .EXE file, the original
+	program and not the infected .EXE file is erased.
+
+	The text strings "AU", "1O7=0SLMTA", and "CHKLIST????" appear in the
+	decripted code.  The virus gets it name from "AU", the chemical
+	element "GOLD".  The text string "CHKLIST????" is actually executable
+	code.
+
+	The GOLD-BUG virus has two companion viruses that it works with.  The
+	DA'BOYS virus is also a boot-sector infector.  It is possible to have
+	a diskette with two boot-sector viruses.  GOLD-BUG hides the presence
+	of the DA'BOYS virus from the Windows 3.1 startup routine.  GOLD-BUG
+	removes the DA'BOYS virus from the INT 13 chain at the start of
+	Windows and restores it when Windows ends.  The GOLD-BUG virus works
+	with the XYZ virus; it reserves the space FFFF:F900 to FFFF:FAFF in
+	the HMA for the XYZ virus so it can load as well.
+
+	To remove the GOLD-BUG virus, change DOS=HIGH to DOS=LOW in the
+	CONFIG.SYS, then reboot.  Once the system comes up again, reboot from
+	a clean boot disk.  The Virus has now removed itself from the
+	partition table and memory.  With the ATTRIB command check for files
+	with the SYSTEM bit set that don't have any extension.  Delete the
+	.EXE file associated with the SYSTEM file.  Using ATTRIB remove the
+	SYSTEM attribute.  Rename the file with no extension to an .EXE file.
+	Format each diskette or run SYS to remove the virus from the boot
+	sector of each 1.2M disk.  Any spawned .EXE files copied to diskette
+	need to be deleted.
+
+	Several variations of this virus can exist.  The assembly code allowed
+	for 14 features to be turned on or off:  Delete Scanners, Check for
+	8088, Infect at Random, Deflect Delete, CMOS Bomb, File Reading
+	Stealth, Same File Date, Double Decription, Execute Spawned, Modem
+	Code, Anti-Antivirus, Polymorphic, Multipartite and 720K or 1.2M
+	Diskette Infection.  Some of these features can be disabled and more
+	code added to change the characteristics of this virus.
