@@ -1,0 +1,450 @@
+Gotcha 1
+
+   This was the first virus I wrote. It is a resident COM and EXE infector.
+   It infects programs when they are executed. It hides at the top of
+   conventional memory. When infecting it intercepts INT24, circumvents
+   the read-only attribute and disables Ctrl-Break. It also restores the
+   original file date and time after the infection. Some parts of it were
+   taken from the Yankee Doodle virus, but nevertheless this is an enterly
+   new virus.
+
+
+Gotcha 4
+
+   This is a resident COM infector. It is a stripped-down variant of
+   version 1. The special thing about this virus is that it contains
+   scan-strings of a few other viruses. These scan-strings are encrypted
+   and in every infected file one of them is decrypted. So scanners can be
+   fooled to think that there are up to 8 differrent other viruses in case
+   a lot of files have been infected with this virus.
+
+
+Gotcha 6
+
+   This version is the follow-up of version 1. This one has some additional
+   features. It can also infect files when they are opened, it avoids to
+   infect files matching the name *AN*.* (like SCAN.EXE, CLEAN.EXE,
+   TBSCAN.EXE etc...) and it won't infect files when the DOS environment
+   contains "E=mcý".
+ 
+
+Gotcha 7
+
+   This is a minor bug-fix of version 6. 
+
+
+Gotcha 9
+
+   In this next version a few bugs are removed and the code has been made
+   a little bit efficient. It can also infect files on more different DOS
+   funcions like rename (56h), attribute (43h), findfirst (4Eh) and many
+   others. It now also avoids files matching the name V*.* (like VIRX.EXE,
+   VSHIELD.EXE, etc..).
+
+
+Gotcha 17
+
+   This version is quite different from the others. It uses another technique
+   to access files, similar as many bulgarian viruses (like 512). Also other
+   things are made more efficient. This one only infects files when they are
+   executed or closed. It now also avoids files matching the name F*.*.
+
+
+46 Virus
+
+   This is an extremely simple virus. It just overwrites all COM files in
+   it's directory with a copy of itself. It's length is 46 bytes, hence the
+   name.
+
+
+Seventh Son 1
+
+   This is a simple non-resident COM infecting virus. It will infect all
+   other COM files in it's directory. It circumvents read-only attributes,
+   intercepts INT24, disables Ctrl-break and keeps the original file date
+   and time when infecting. The virus contains a generation counter. If
+   both his own and the previous generation are 7, it will display the text
+   "Seventh son of a seventh son" on the screen. This virus was named after
+   an Iron Maiden song (yes, I admit, not very original).
+
+
+Seventh Son 2
+
+   This version is a little bit smaller and more efficiently coded. This
+   virus alsos contain the text 'Virus' in cyrilic (‚¨°³±) at the end. This
+   has no special purpose. Just to confuse some people.
+
+
+Seventh son 4
+
+   This version is again made smaller and more efficient.
+
+
+Little Brother 1
+
+   This is a resident spawning EXE infector. It infects EXE files by
+   creating a COM file with the same name, without touching the EXE file.
+   The COM file only contains the complete virus. The first time the virus
+   is executed it will install itself in an unused part of memory (and not
+   run the original program). When DOS wants to execute a program, the virus
+   uses a clumsy algorithm to decide whether a COM or an EXE file should be
+   executed.
+
+
+Little Brother 2
+
+   In this version a few bugs are removed and it is also a bit more
+   efficiently coded.
+
+
+Little Brother 3
+
+   This version works a little bit different than the previous two. This
+   one doesn't use the resident algorithm anymore to decide wether to
+   execute a COM or an EXE file. Instead the original EXE program is
+   spawned from the COM program (the virus).
+
+
+Tiny 126
+
+   This is a small resident COM infecting virus. It is written as an attempt
+   to write the smallest possible virus. The length of this virus is 126
+   bytes. It does NOT re-infect programs that are already infected. This
+   virus hides in memory at address 0050:0100.
+
+
+Tiny 124
+
+   This one is exactly the same as the previous one, only it hides at address
+   0000:0100. That location is part of the interrupt area, and because of
+   that this virus is very unstable. It crashes very often, but nevertheless
+   it is able to infect files.
+
+
+Tiny 124B
+
+   This is a variant of version 126. It will not infect COM files that begin
+   with a near JMP (E9h). This version has a disadvantage that it also tries
+   to infect EXE files. Infected EXE files will not function anymore.
+
+
+Tiny 122
+
+   This one is based on version 124. It has the same disadvantage as
+   version 124B.
+
+
+Mini 99
+
+   This is a small non-resident COM infecting virus. Like the previous
+   mentioned viruses, this one too was written as an attempt to write the
+   smallest possible virus. A big part of the code is similar although it
+   is a different type of virus. This virus will infect all COM files in
+   it's directory.
+
+
+Mini 97
+
+   This version is 2 bytes smaller. It will not infect COM files that begin
+   with a near JMP (E9h).
+
+
+Mini 91
+
+   This version only tries to infect the first COM file in it's directory.
+
+
+Mini 117
+
+   This one is a little bit improved variant. It will infect only the first
+   uninfected COM file in it's directory (if the first one is infected it
+   will infect the second one).
+
+
+Mini 111
+
+   This is an improved version of Mini 97. This one will keep the original
+   DTA area, so programs that use command-line input will still function.
+
+
+Cannabis 1
+
+   This is an overwriting floppy bootsector virus. It is a sort of
+   combination of a (simplified) bootsector and a virus. Instead of
+   keeping the original bootsector somewhere else on the disk, it just
+   overwrites the original bootsector. When an infected floppy is booted,
+   the virus installs itself in memory and then prints the message
+   "Non-System disk or disk error  Replace and press a key when ready" on
+   the screen. Then it tries to boot again. One has to boot from another
+   disk or from harddisk to continue. But the virus will stay resident
+   in memory. Sometimes the virus will print the message "Hey man, I don't
+   wanna work. I'm too stoned right now..." on the screen when booting, and
+   the computer will then hang.
+
+
+Cannabis 2
+
+   Unlike the previous version, this one is able to boot from the infected
+   disk, just like normal bootsectors. It doesn't contain the part that
+   writes the "Hey man..." message anymore.
+
+
+Cannabis 3
+
+   This is a minor bug-fix of version 2. The previous versions had a serious
+   bug that they sometimes wrote to the wrong side of the floppy.
+
+
+Pogue Mahone
+
+   This one is the most famous virus of this collection. It is a resident
+   COM infecting virus. It's based on the last version of the Gotcha virus.
+   The most remarkable thing about this virus is that it uses the Mutation
+   Engine (MtE). The Mutation Engine is a small module written by "Dark
+   Avenger", which can be included in viruses to make them polymorphic.
+   This virus does not infect files matching the name CO*.COM (like
+   COMMAND.COM). When the virus becomes resident between 1:00 and 9:00
+   it will play the song 'Streams of Whiskey' (by The Pogues!). On the first
+   of May it will play another song.
+
+
+Redhair ANSI bomb
+
+   This is not a virus but an ANSI bomb. Unlike most other bombs this one
+   does not destroy anything. This bomb is in fact both an ANSI picture and
+   a COM file. The COM file is infected with the MINI-117 virus. When the
+   ANSI bomb triggers (when the backslash key is pressed) it will rename
+   itself to X.COM and then execute X.COM. So the virus is then activated!
+   After that it changes it's name back to REDHAIR.ANS.
+
+
+ANSI virus
+
+   This is another program that uses ANSI techniques. It's not just an ANSI
+   bomb but an ANSI virus! Many people think ANSI viruses don't exist, but
+   this one proves them wrong. This one uses the same trick as Redhair, it's
+   at the same time an ANSI picture and a COM program. When activated, it
+   will overwrite one .ANS file in the directory with a copy of itself. It
+   adjusts the text in the virus to the victim's filename.
+
+
+Legalize
+
+   This is another virus that is based on Gotcha 17. It is a resident
+   COM and EXE infector. It doesn't infect CO*.*. The special thing about
+   this virus is that it will display a picture of a large green hemp leaf
+   when the virus becomes resident on fridays. After showing the picture,
+   the virus will ask the user a few questions about what he/she thinks
+   about legalizing cannabis. After this, the virus will quit to DOS.
+   The picture in the virus is packed with DIET to keep the virus small.
+   A few small bugs from Gotcha 17 are fixed in this virus, but unfortunatly
+   this virus has a new bug which causes some infected EXE programs to crash.
+
+
+Coffeeshop 1
+
+   This one is based on Gotcha 17 and Legalize. Originally it was planned
+   to be a final bug-free version of Gotcha, but later I put the picture
+   routine from Legalize in it. Although it is based on Gotcha 17, a large
+   part of it has changed. It infects COM or EXE files when it is executed
+   or opened with DOS function 6C00h. It avoids to infect several known
+   programs that use a self-check (like most virus scanners). It also doesn't
+   infect several other files, like Windows files, files with internal
+   overlays etc. The virus doesn't use any undocumented features of DOS
+   anymore. I wanted it to be as compatible as possible. The picture routine
+   is also improved. It activates on fridays on a pseudo-random base when the
+   virus becomes resident. It will then show the big green hemp leaf and
+   after that it will continue with the original program (unlike Legalize).
+
+
+Coffeeshop 2
+
+   This virus is very similar to the previous one, but with MtE included.
+   It only infects EXE files. At the time this virus was made a lot of
+   scanners claimed that they were able to detect MtE, but none of them
+   could detect this virus.
+
+
+Coffeeshop 3
+
+   This one too is very similar to the previous ones. Like version 2,
+   this one is also highly polymorphic. But instead of using MtE, I wrote
+   the encrytion routine myself. It infects both COM and EXE files.
+
+
+Coffeeshop 4
+
+   This is a minor bugfix of version 3. This one can also activate when
+   the virus is already resident.
+
+
+Virus_for_Windows 1.4
+
+   This is a primitive non-resident virus that only infects Windows EXE
+   program. As far as I know this is the first known Windows virus. It
+   will try to infect all Windows EXE files in its directory. This virus
+   has a big problem, it is not able to execute the original program.
+   As a solution to this the virus will disinfect itself after infecting
+   the other programs. So one has to execute infected programs twice to
+   execute the original program. This virus will only infect programs which
+   have a big enough data-segment.
+
+
+MK Worm
+
+   This is not a real virus, but some simple kind of worm. It does not
+   infect programs in any way. Instead it will only copy itself to a few
+   other directories on the disk from which it was executed. Each variant
+   will have a different name and also their lenghts will be slightly
+   different. It can spread because many people are used to try out every
+   new executable file they get, and many people often use the command
+   'COPY *.*'.
+
+
+Cruncher 1.0
+
+   This is a virus that uses data-compression. It is a resident COM
+   infector, based on the Coffeeshop series. It compresses the victim file
+   after infection. So the virus will be compressed together with the
+   original program. The compression algorithm is the same as that of the
+   program 'Diet'.
+
+
+Cruncher 2.0
+
+   This version also infects EXE files.
+
+
+Cruncher 2.1
+
+   This version is almost equal to version 2.0 but this one asks permission
+   from the user before going resident. This feature changes it from a 
+   naughty virus into a userfriendly automatic compression utility!
+
+
+TPE 1.1
+
+   This is an OBJ module that can be linked to a virus to make it
+   polymorphic. It can be used in a similar way as the famous MtE
+   module. The encryption routine of TPE is taken from Coffeeshop
+   version 3/4. 
+
+
+TPE 1.2
+
+   This is a bugfix. The previous version often produced decryption
+   routines that didn't work on all processor types.
+
+
+TPE 1.3
+
+   This is a another bugfix. This version is made fully relocatable
+   within a memory segment, which is very handy for non-resident
+   viruses. Also another incompatibility bug is fixed.
+
+
+TPE 1.4
+
+   In this version the encryption/decryption algorithms are made more
+   complex. The previous versions could be detected by decrypting the
+   encrypted code. 
+
+
+PlayGame
+
+   This is a semi-stealth multi-partite EXE-infector. This virus infects
+   the master bootsector of the harddisk when an infected program is
+   executed. The virus only uses stealth techniques when a known anti-virus
+   program is executed or at the 'DIR' command. The payload of this virus
+   is a little arcade game that the user can play for fun. It activates in
+   december after 21:00. 
+
+
+DOS-1
+
+   This is a simple non-resident COM infector. It uses only FCB function
+   calls, so it is compatible with all previous DOS versions, including
+   version 1.0.
+
+
+Bosnia
+
+   This is a variant of Coffeeshop 3/4, but with another picture routine.
+   The TPE 1.4 module is linked with this virus.
+
+
+PCA virus
+
+   This is a very simple overwriting virus. After infecting it shows a
+   picture of the mascotte of the dutch magazine "PC Active". The picture
+   inside the virus is compressed in a special way, to keep the virus
+   small.
+
+
+==============================================================================
+
+                         Virus Characteristics List
+
+
+ANSI keyboard remap-------------------+
+Polymorphic-------------------------+ |
+Infects Windows EXE files---------+ | |
+Infects EXE files---------------+ | | |
+Infects COM files-------------+ | | | |
+Memory Resident-------------+ | | | | |
+Overwriting---------------+ | | | | | |
+Bootsector virus--------+ | | | | | | |
+                        | | | | | | | |
+                        V V V V V V V V      Length
+---------------------------------------------------
+Gotcha 1                . . R C E . . .         732
+Gotcha 4                . . R C . . . .         607
+Gotcha 6                . . R C E . . .         879
+Gotcha 7                . . R C E . . .         881
+Gotcha 9                . . R C E . . .         906
+Gotcha 17               . . R C E . . .         627
+46 Virus                . O . C . . . .          46
+Seventh Son 1           . . . C . . . .         350
+Seventh Son 2           . . . C . . . .         332
+Seventh Son 4           . . . C . . . .         284
+Little Brother 1        . . R . E . . .         299
+Little Brother 2        . . R . E . . .         307
+Little Brother 3        . . R . E . . .         321
+Tiny 126                . . R C . . . .         126
+Tiny 124                . . R C . . . .         124
+Tiny 124B               . . R C E . . .         124
+Tiny 122                . . R C E . . .         122
+Mini 99                 . . . C . . . .          99
+Mini 97                 . . . C . . . .          97
+Mini 91                 . . . C . . . .          91
+Mini 117                . . . C . . . .         117
+Mini 111                . . . C . . . .         111
+Cannabis 1              B O R . . . . .         512
+Cannabis 2              B O R . . . . .         512
+Cannabis 3              B O R . . . . .         512
+Pogue Mahone            . . R C . . P .        3017+
+Redhair ANSI bomb       . . . . . . . A           -
+ANSI virus              . O . . . . . A         881
+Legalize                . . R C E . . .        1781
+Coffeeshop 1            . . R C E . . .        1568
+Coffeeshop 2            . . R . E . P .        3792+
+Coffeeshop 3            . . R C E . P .        3000+
+Coffeeshop 4            . . R C E . P .        3000+
+Virus_for_Windows 1.4   . . . . . W . .         854
+MK Worm                 . . . . . . . .         715+
+Cruncher 1.0            . . R C . . . .        2092-
+Cruncher 2.0            . . R C E . . .        4000-
+Cruncher 2.1            . . R C E . . .        4800-
+TPE 1.1                 . . . . . . P .        1378
+TPE 1.2                 . . . . . . P .        1355
+TPE 1.3                 . . . . . . P .        1411
+TPE 1.4                 . . . . . . P .        1637
+PlayGame                B . R . E . . .        2000
+Dos-1                   . . . C . . . .         184
+Bosnia                  . . R C E . P .        3112+
+PCA virus               . O . C . . . .         342
+
+;  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+;  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ> ReMeMbEr WhErE YoU sAw ThIs pHile fIrSt <ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+;  ÄÄÄÄÄÄÄÄÄÄÄ> ArReStEd DeVeLoPmEnT +31.77.SeCrEt H/p/A/v/AV/? <ÄÄÄÄÄÄÄÄÄÄÄ
+;  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ

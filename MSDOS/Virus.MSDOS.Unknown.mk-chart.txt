@@ -1,0 +1,72 @@
+
+              Virus relationship charts of Masud Khafir's viruses
+              ===================================================
+
+
+
+Gotcha F  (732)
+  ÃÄÄ Gotcha E  (607)
+  ÀÄÄ Gotcha A  (879)
+        ÀÄÄ Gotcha B  (881)
+              ÀÄÄ Gotcha C  (906)
+                    ÀÄÄ Gotcha D  (627)
+                          ÃÄÄ Pogue
+                          ÀÄÄ Legalize
+                                ÀÄÄ Coffeeshop 1
+                                      ÃÄÄ Coffeeshop 2
+                                      ÀÄÄ Coffeeshop 3  (Girafe A)
+                                            ÀÄÄ Coffeeshop 4  (Girafe B)
+                                                  ÃÄÄ Cruncher 1.0
+                                                  ³     ÀÄÄ Cruncher 2.0
+                                                  ³           ÀÄÄ Cruncher 2.1
+                                                  ÃÄÄ PlayGame
+                                                  ÀÄÄ Bosnia
+
+
+Seventh son 350
+  ÀÄÄÄÄ Seventh son 332
+          ÀÄÄÄÄ Seventh son 284
+                  ÀÄÄÄÄ DOS-1
+
+
+Little Brother 299
+  ÃÄÄÄÄ Little Brother 307
+  ³       ÃÄÄÄÄ Little Brother 321
+  ³       ÀÄÄÄÄ Little Brother 349  (Vote)  (*)
+  ³               ÀÄÄÄÄ Little Brother 361  (Vote-Erase)  (*)
+  ÀÄÄÄÄ Little Brother 300  (*)
+
+
+Cannabis 1
+  ÀÄÄÄÄ Cannabis 2
+          ÀÄÄÄÄ Cannabis 3
+                  ÀÄÄÄÄ Cannabis 4  (*)
+
+
+Dutch Tiny 126
+  ÃÄÄÄÄ Dutch Tiny 124
+  ³       ÀÄÄÄÄ Dutch Tiny 122
+  ÀÄÄÄÄ Dutch Tiny 124B
+
+
+Dutch Mini 99
+  ÀÄÄÄÄ Dutch Mini 97
+          ÃÄÄÄÄ Dutch Mini 91
+          ÃÄÄÄÄ Dutch Mini 117
+          ÀÄÄÄÄ Dutch Mini 111
+
+
+46-Virus
+  ÀÄÄÄÄ PCA virus
+
+
+ANSI-Virus
+
+Virus_for_Windows 1.4
+
+MK-Worm
+
+
+
+
+(*) Note: The viruses marked with (*) are NOT written by Masud Khafir!
