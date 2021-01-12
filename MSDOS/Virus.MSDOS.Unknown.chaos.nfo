@@ -1,0 +1,26 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+
+W97M/Chaos
+By Lord Natas
+
+Features:
+
+ * First Word 97 "Companion" virus
+ * Slightly polymorphic
+ * Doesn't need/use normal.dot
+ * Infects c:\windows\shellnew so docs created in explorer are infected!
+ * Works under SR-1
+
+Lord Natas
+
+-----BEGIN PGP SIGNATURE-----
+Version: 2.6.2
+
+iQEVAwUBNZZnus+drLnKo0YdAQEthwf/a5fqHpM48l9YgWcWoC0J7dqAMNKvv3lz
+doQ9uj2Y7lHQ6SqMOfpigb1zvhwdDOJikWBunAJTXIHq1ufS9v1HzEVwoo45DZnK
+DI2EkUfUWI8X3pGM0ZVCf48XSAlRIGjnQHl8GAO43Yq8WVF3LwJTIASXVauos2hm
+wEl6RIidMnlV5QbyiAkrGTA9Ln3Gt+ygXqgQq5zbi59i9JnROxSRvZgtJFb9Y6CD
+SqXsA9LjjBaMHCnEsOlieHDs88+YRn7b/JGGgLux/bfivh1pPeaztf04fVEN309p
+eAVZdOZQRbydoZy9v57YGktUKnEVY3RvDL/3a9OFlzT1k7DWjnsnmg==
+=IwBm
+-----END PGP SIGNATURE-----

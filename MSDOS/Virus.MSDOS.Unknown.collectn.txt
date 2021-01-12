@@ -1,0 +1,26 @@
+                              - TridenT  -
+
+This is a collection of 100+ viruses, many of them with the original source 
+code.  These viruses were created by the members of the Dutch virus writing
+group TridenT. The collection is divided into seperate archives to cover the 
+individual members of the group:
+                
+                - Bit Addict
+                - Crom-Cruach
+                - Dark Helmet
+                - Darkray
+                - Masud Khafir
+                - Glen Benton later known as John Tardy
+
+Also included are the 4 versions of the TridenT Polymorphic Engine, 
+one of the first polymorphic engines used to create "undetectable" viruses,
+and interviews with several of the members. Spread throughout the archives
+are copies of viruses of TridenT "copy-cats" and "wannabees".
+
+Following "updates" to this collection will be minor since the "well" is
+about dry. I must have waded thru 100+ Mb of files to get this far, there is
+no more to find.
+
+Enjoy
+
+<-›¡› Tâ¡X-|05/95>
