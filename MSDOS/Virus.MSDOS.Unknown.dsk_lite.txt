@@ -1,0 +1,56 @@
+ 
+
+
+
+
+
+
+                         P R O - D I S K  - L I T E
+
+
+
+
+
+
+
+
+
+                                   v1.01
+
+
+
+
+                          by Dan Joung and Dark Ray
+
+What is it?
+
+Pro-Disk-lite is a on-screen disk lite, it will show a floppie-disk in the
+upper right courner of your screen if interrupt HEX 13 is called, what means
+it will on any kind of disk access.
+
+Why use it?
+
+Because is't handy if you havn't got a (working) LED in your drive, or just
+because it looks great!
+
+Who are you?
+
+I'm Dan Joung, a hareware programmammer from the states.
+And my friend DarkRay (who allways uses an alias) who drawed the ANSI-screen
+for me, excellent work darky!
+
+Costs?
+
+Non, but if you like it you can send me 10 dollar...
+
+ Dan Joung
+ 10th street
+ 624155 New York
+ United States
+
+Thanks in advance!
+
+;  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+;  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ> ReMeMbEr WhErE YoU sAw ThIs pHile fIrSt <ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+;  ÄÄÄÄÄÄÄÄÄÄÄ> ArReStEd DeVeLoPmEnT +31.77.SeCrEt H/p/A/v/AV/? <ÄÄÄÄÄÄÄÄÄÄÄ
+;  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
