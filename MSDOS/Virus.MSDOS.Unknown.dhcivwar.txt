@@ -1,0 +1,67 @@
+
+Relationchart of the Civil War and related viruses, (c) 1993 by TridenT.
+
+Below you find the relation chart of the Civil War based viruses.
+This is the only correct relationchart, don't trust the
+information you may find in VSUM, F-Prot etc. or the CARO naming
+because they contains a lot of errors
+
+Greetings, DH / TridenT
+
+------------------------------------------------------------------------------
+
+Civil War
+      |
+      +--> Civil War II v1.0 --> Proto-T --> Lockjaw Eins
+      |          |                             |
+      |          |                             +--> Lockjaw Zwei
+      |          |                                      |
+      |          |                                      +--> Lockjaw Drei
+      |          |
+      |          +--> Civil War II v1.1 --> Civil War III
+      |                     |
+      |                     +--> Civil War V
+      |
+      +--> Civil War IV v1.0
+                 |
+                 +--> Civil War IV v1.1
+                            |
+                            +-> Civil War IV v1.2
+                                      |
+                                      +--> Civil War IV v1.3
+
+
+
+
+Original Name               CARO Name
+------------------------------------------------------------------------------
+Civil War               Civil War
+Civil War II v1.0           Proto-T.Civil_War_II
+Civil War II v1.1           -
+Civil War III               -
+Civil War IV v1.0           TPE_1_3.Civil_War.A
+Civil War IV v1.1           TPE_1_3.Civil_War.B
+Civil War IV v1.2           -
+Civil War IV v1.3           -
+Civil War V             TPE_1_3.Civil_War.C
+------------------------------------------------------------------------------
+
+             R C E P
+             --------
+Civil War            . x . .
+Civil War II v1.0    x x . .
+Civil War II v1.1    x x . .
+Civil War III        x x x .
+Civil War IV v1.0    . x . x
+Civil War IV v1.1    . x . x
+Civil War IV v1.1    . x . x
+Civil War IV v1.2    . x . x
+Civil War IV v1.3    . x . x
+Civil War V          x x . x
+
+
+Code :  R = Resident
+        C = Infect COM files
+        E = Infect EXE files
+        P = Polymorpic
+
