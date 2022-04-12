@@ -1,0 +1,16 @@
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HideProcess", "HideProcess.vcxproj", "{4EE67C57-BE79-4CD7-B3B0-94AECE62DB41}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		WinDDK|Win32 = WinDDK|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4EE67C57-BE79-4CD7-B3B0-94AECE62DB41}.WinDDK|Win32.ActiveCfg = WinDDK|Win32
+		{4EE67C57-BE79-4CD7-B3B0-94AECE62DB41}.WinDDK|Win32.Build.0 = WinDDK|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

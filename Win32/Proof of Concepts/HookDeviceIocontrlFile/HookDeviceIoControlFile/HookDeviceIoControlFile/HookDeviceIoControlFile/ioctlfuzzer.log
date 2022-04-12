@@ -1,0 +1,3 @@
+[17792] DbgInit(): Log file 'c:\Users\minzhen\Desktop\8.3 Hook DeviceIoControlFile(x86 x64)\HookDeviceIoControlFile\HookDeviceIoControlFile\HookDeviceIoControlFile\ioctlfuzzer.log' created
+[17792] PipeServerThread(): Listening on pipe '\\.\pipe\IOCTLfuzzer'
+[17792] [+] Changing console screen buffer height from 300 to 4096 lines

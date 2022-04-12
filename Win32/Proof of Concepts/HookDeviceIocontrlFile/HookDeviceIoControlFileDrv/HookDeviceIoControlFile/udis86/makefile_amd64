@@ -1,0 +1,20 @@
+OUTNAME = udis86_amd64
+
+ALL: $(OUTNAME).lib
+
+CC = cl.exe
+
+CFLAGS = /nologo -I".\src" -I"$(CRT_INC_PATH)" -D__UD_STANDALONE__ -D_AMD64_=1 -D_M_AMD64 /Gz /c
+
+include Makefile.inc
+
+LN = lib.exe
+
+LFLAGS = /LIBPATH:$(CRT_LIB_PATH)\..\amd64 /out:$(OUTNAME).lib
+
+$(OUTNAME).lib: $(LOBJS)
+    $(LN) $(LFLAGS) $(LOBJS)
+
+clean:
+    @del *.obj 
+

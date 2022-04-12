@@ -1,0 +1,18 @@
+TARGETNAME=CheckKernelHook
+#TARGETPATH=$(BASEDIR)\lib
+TARGETPATH=obj
+TARGETTYPE=DRIVER
+
+INCLUDES=.\
+
+SOURCES= \
+DriverEntry.c \
+Common.c \
+KernelHookCheck.c \
+Reload.c \
+FileSystem.c \
+FixRelocation.c \
+KernelReload.c \
+libdasm.c
+
+

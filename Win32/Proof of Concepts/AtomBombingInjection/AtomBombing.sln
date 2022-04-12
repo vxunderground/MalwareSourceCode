@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.40629.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AtomBombing", "AtomBombing\AtomBombing.vcxproj", "{D303FA55-CFF8-4484-888A-F06B21559014}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DAD3D2B2-372F-4486-91FA-032CC0AA1133} = {DAD3D2B2-372F-4486-91FA-032CC0AA1133}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AtomBombingShellcode", "AtomBombingShellcode\AtomBombingShellcode.vcxproj", "{DAD3D2B2-372F-4486-91FA-032CC0AA1133}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D303FA55-CFF8-4484-888A-F06B21559014}.Debug|Win32.ActiveCfg = Release|Win32
+		{D303FA55-CFF8-4484-888A-F06B21559014}.Debug|Win32.Build.0 = Release|Win32
+		{D303FA55-CFF8-4484-888A-F06B21559014}.Release|Win32.ActiveCfg = Release|Win32
+		{D303FA55-CFF8-4484-888A-F06B21559014}.Release|Win32.Build.0 = Release|Win32
+		{DAD3D2B2-372F-4486-91FA-032CC0AA1133}.Debug|Win32.ActiveCfg = Release|Win32
+		{DAD3D2B2-372F-4486-91FA-032CC0AA1133}.Debug|Win32.Build.0 = Release|Win32
+		{DAD3D2B2-372F-4486-91FA-032CC0AA1133}.Release|Win32.ActiveCfg = Release|Win32
+		{DAD3D2B2-372F-4486-91FA-032CC0AA1133}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

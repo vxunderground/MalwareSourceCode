@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProcessHollowing", "ProcessHollowing\ProcessHollowing.vcxproj", "{0E0493EE-D2FF-40A8-9563-FD4FFD1431DD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HelloWorld", "HelloWorld\HelloWorld.vcxproj", "{CBDD0923-D056-4517-9820-EDA9C05F5639}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0E0493EE-D2FF-40A8-9563-FD4FFD1431DD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0E0493EE-D2FF-40A8-9563-FD4FFD1431DD}.Debug|Win32.Build.0 = Debug|Win32
+		{0E0493EE-D2FF-40A8-9563-FD4FFD1431DD}.Release|Win32.ActiveCfg = Release|Win32
+		{0E0493EE-D2FF-40A8-9563-FD4FFD1431DD}.Release|Win32.Build.0 = Release|Win32
+		{CBDD0923-D056-4517-9820-EDA9C05F5639}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CBDD0923-D056-4517-9820-EDA9C05F5639}.Debug|Win32.Build.0 = Debug|Win32
+		{CBDD0923-D056-4517-9820-EDA9C05F5639}.Release|Win32.ActiveCfg = Release|Win32
+		{CBDD0923-D056-4517-9820-EDA9C05F5639}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

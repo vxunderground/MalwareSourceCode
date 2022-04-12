@@ -1,0 +1,19 @@
+OUTNAME = udis86_i386
+
+ALL: $(OUTNAME).lib
+
+CC = cl.exe
+
+CFLAGS=/nologo -I".\src" -I"$(CRT_INC_PATH)" -D__UD_STANDALONE__ -D_X86_=1 /Gz /c
+
+include Makefile.inc
+
+LN = lib.exe
+
+LFLAGS = /LIBPATH:$(CRT_LIB_PATH)\..\i386 /out:$(OUTNAME).lib
+
+$(OUTNAME).lib: $(LOBJS)
+    $(LN) $(LFLAGS) $(LOBJS)
+
+clean:
+    @del *.obj 

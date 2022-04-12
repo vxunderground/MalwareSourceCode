@@ -1,0 +1,22 @@
+TARGETNAME=IOCTL_fuzzer
+TARGETTYPE=DRIVER
+DRIVERTYPE=FS
+
+
+TARGETLIBS=$(TARGETLIBS) \
+           .\udis86\udis86_i386.lib \
+		   .\udis86\udis86_amd64.lib
+
+
+
+SOURCES=driver.c \
+	common.c \
+	debug.c \
+	handlers.c \
+	hook.c \
+	log.c \
+	lst.c \
+	rng.c \
+	rules.c \
+	version.rc
+	

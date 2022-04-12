@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Common.c" />
+    <ClCompile Include="DriverEntry.c" />
+    <ClCompile Include="KernelHookCheck.c" />
+    <ClCompile Include="libdasm.c" />
+    <ClCompile Include="FileSystem.c">
+      <Filter>Reload</Filter>
+    </ClCompile>
+    <ClCompile Include="FixRelocation.c">
+      <Filter>Reload</Filter>
+    </ClCompile>
+    <ClCompile Include="KernelReload.c">
+      <Filter>Reload</Filter>
+    </ClCompile>
+    <ClCompile Include="Reload.c">
+      <Filter>Reload</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Common.h" />
+    <ClInclude Include="DriverEntry.h" />
+    <ClInclude Include="KernelHookCheck.h" />
+    <ClInclude Include="libdasm.h" />
+    <ClInclude Include="tables.h" />
+    <ClInclude Include="FileSystem.h">
+      <Filter>Reload</Filter>
+    </ClInclude>
+    <ClInclude Include="FixRelocation.h">
+      <Filter>Reload</Filter>
+    </ClInclude>
+    <ClInclude Include="KernelReload.h">
+      <Filter>Reload</Filter>
+    </ClInclude>
+    <ClInclude Include="Reload.h">
+      <Filter>Reload</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="sources" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Reload">
+      <UniqueIdentifier>{7f84aa62-4fe1-452a-a193-32b7b7a3e2db}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

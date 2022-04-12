@@ -1,0 +1,47 @@
+//
+// Copyright (c) Johnny Shaw. All rights reserved.
+// 
+// File:     source/ProcessHerpaderping/res/resource.rc
+// Author:   Johnny Shaw
+// Abstract: Resource File 
+//
+#include <Windows.h>
+#include <ntverp.h>
+#include "resource.h"
+#include "version.h"
+
+IDI_ICON                ICON                    "Icon.ico"
+
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION VER_MAJOR,VER_MINOR,VER_PATCH,VER_BUILD 
+ PRODUCTVERSION VER_MAJOR,VER_MINOR,VER_PATCH,VER_BUILD
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", STR_COMPANY_NAME 
+            VALUE "FileDescription", STR_FILE_DESCRIPTION
+            VALUE "FileVersion", STR_VERSION
+            VALUE "InternalName", STR_INTERNAL_NAME
+            VALUE "LegalCopyright", STR_COPYRIGHT
+            VALUE "OriginalFilename", STR_ORIGINAL_FILENAME
+            VALUE "ProductName", STR_PRODUCT_NAME
+            VALUE "ProductVersion", STR_PRODUCT_VERSION
+    END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

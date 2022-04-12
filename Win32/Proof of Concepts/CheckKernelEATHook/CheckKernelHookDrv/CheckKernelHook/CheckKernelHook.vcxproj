@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="WinDDK|Win32">
+      <Configuration>WinDDK</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Common.c" />
+    <ClCompile Include="DriverEntry.c" />
+    <ClCompile Include="FileSystem.c" />
+    <ClCompile Include="FixRelocation.c" />
+    <ClCompile Include="KernelHookCheck.c" />
+    <ClCompile Include="KernelReload.c" />
+    <ClCompile Include="libdasm.c" />
+    <ClCompile Include="Reload.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Common.h" />
+    <ClInclude Include="DriverEntry.h" />
+    <ClInclude Include="FileSystem.h" />
+    <ClInclude Include="FixRelocation.h" />
+    <ClInclude Include="KernelHookCheck.h" />
+    <ClInclude Include="KernelReload.h" />
+    <ClInclude Include="libdasm.h" />
+    <ClInclude Include="Reload.h" />
+    <ClInclude Include="tables.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="sources" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{4EE67C57-BE79-4CD7-B3B0-94AECE62DB41}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>"CheckKernelHook"</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='WinDDK|Win32'">
+    <TargetExt>.sys</TargetExt>
+    <GenerateManifest>false</GenerateManifest>
+    <ExecutablePath>$(WLHBASE)\bin\x86\x86;$(WLHBASE)\bin\x86</ExecutablePath>
+    <IncludePath>$(WLHBASE)\inc\api;$(WLHBASE)\inc\crt;$(WLHBASE)\inc\ddk;$(WLHBASE)\inc</IncludePath>
+    <ReferencePath />
+    <LibraryPath>$(WLHBASE)\lib\win7\i386</LibraryPath>
+    <SourcePath />
+    <ExcludePath />
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='WinDDK|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>_X86_;DBG=1</PreprocessorDefinitions>
+      <ExceptionHandling>false</ExceptionHandling>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <CallingConvention>StdCall</CallingConvention>
+      <CompileAs>CompileAsC</CompileAs>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>ntoskrnl.lib;hal.lib;wdm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <Link>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+      <SubSystem>Native</SubSystem>
+      <Driver>Driver</Driver>
+      <EntryPointSymbol>DriverEntry</EntryPointSymbol>
+      <SetChecksum>true</SetChecksum>
+      <BaseAddress>0x10000</BaseAddress>
+      <RandomizedBaseAddress>
+      </RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

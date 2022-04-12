@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="windows-1251" ?> 
+<cfg>
+  <!-- Path to log file. --> 
+  <log_file>C:\ioctlfuzzer.log</log_file> 
+
+  <!--  If true, hex dumps of IOCTL buffers will be logged. --> 
+  <hex_dump>true</hex_dump> 
+
+  <!-- If true, will print logging output to console. --> 
+  <log_requests>true</log_requests> 
+
+  <!-- If true, will print logging output to kernel debugger. -->
+  <debug_log_requests>true</debug_log_requests> 
+  
+   <!-- If true, will log boot. -->
+  <boot_log>false</boot_log> 
+
+  <!--
+      IOCTLs "allow" list.
+   
+      The fuzzer will process (i.e. log and/or fuzz) any IOCTL request 
+      containing at least one parameter from the <allow> list.
+   
+      If the list is empty, each IRP will be processed.
+  --> 
+
+  <allow>
+  </allow>
+
+  <!-- 
+      IOCTLs "deny" list, can be empty.
+      Identical in structure to "allow" list.
+  --> 
+  <deny> 
+    <!-- Don't fuzz default Windows drivers. --> 
+
+  </deny>
+  
+  <!--
+      Kernel Debugger Communication Engine configuration:
+      list of IOCTLs (by driver/device/process name or I/O Control Code)
+      and remote kernel debugger commands, that must be executed
+      when IOCTL Fuzzer cacthing these requests.
+      See README.TXT for more information.
+  -->
+  <dbgcb>
+  </dbgcb>
+</cfg>

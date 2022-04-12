@@ -1,0 +1,8 @@
+[submodule "ext/submodules/wil"]
+	path = ext/submodules/wil
+	url = https://github.com/microsoft/wil
+    ignore = dirty
+[submodule "ext/submodules/phnt"]
+	path = ext/submodules/phnt
+	url = https://github.com/processhacker/phnt
+    ignore = dirty
