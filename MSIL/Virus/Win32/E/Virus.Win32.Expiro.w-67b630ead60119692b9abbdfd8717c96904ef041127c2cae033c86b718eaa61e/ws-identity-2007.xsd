@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="http://schemas.xmlsoap.org/ws/2007/01/identity"
+    xmlns:tns="http://schemas.xmlsoap.org/ws/2007/01/identity" 
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+    xmlns:wsid="http://schemas.xmlsoap.org/ws/2005/05/identity" 
+    elementFormDefault="qualified" blockDefault="#all" 
+    version="0.1" >
+
+    <xs:element name="IssuerInformation" type="tns:IssuerInformationType" />
+  <xs:complexType name="IssuerInformationType">
+    <xs:sequence>
+      <xs:element ref="tns:IssuerInformationEntry" maxOccurs="20"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:element name="IssuerInformationEntry" type="tns:IssuerInformationEntryType" />
+  <xs:complexType name="IssuerInformationEntryType">
+    <xs:sequence>
+      <xs:element name="EntryName" type="wsid:StringMaxLength255MinLength1"/>
+      <xs:element name="EntryValue" type="wsid:StringMaxLength255MinLength1"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:element name="RequireStrongRecipientIdentity" />  
+</xs:schema>
+

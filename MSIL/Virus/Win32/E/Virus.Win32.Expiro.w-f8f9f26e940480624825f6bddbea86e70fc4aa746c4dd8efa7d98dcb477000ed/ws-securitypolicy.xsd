@@ -1,0 +1,979 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<xs:schema
+	targetNamespace="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy"
+    xmlns:tns="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy"
+	xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing"
+	xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified"
+	blockDefault="#all" >
+
+	<xs:import namespace="http://schemas.xmlsoap.org/ws/2004/08/addressing" 
+		schemaLocation="http://schemas.xmlsoap.org/ws/2004/08/addressing" />
+
+	<xs:import namespace="http://schemas.xmlsoap.org/ws/2004/09/policy" 
+		schemaLocation="http://schemas.xmlsoap.org/ws/2004/09/policy/ws-policy.xsd" />
+
+	<!--
+	5. Protection Assertions
+	-->
+	<xs:element name="SignedParts" type="tns:SePartsType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				5.1.1 SignedParts Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="EncryptedParts" type="tns:SePartsType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				5.2.1 EncryptedParts Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:complexType name="SePartsType">
+		<xs:sequence>
+			<xs:element name="Body" type="tns:EmptyType" minOccurs="0" />
+			<xs:element name="Header" type="tns:HeaderType" minOccurs="0" maxOccurs="unbounded" />
+			<xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax"/>
+		</xs:sequence>
+		<xs:anyAttribute namespace="##any" processContents="lax" />
+	</xs:complexType>
+	<xs:complexType name="EmptyType" />
+	<xs:complexType name="HeaderType" >
+		<xs:attribute name="Name" type="xs:QName" use="optional" />
+		<xs:attribute name="Namespace" type="xs:anyURI" use="required" />
+		<xs:anyAttribute namespace="##any" processContents="lax" />
+	</xs:complexType>
+
+	<xs:element name="SignedElements" type="tns:SerElementsType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en" >
+				5.1.2 SignedElements Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="EncryptedElements" type="tns:SerElementsType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				5.2.2 EncryptedElements Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="RequiredElements" type="tns:SerElementsType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en" >
+				5.3.1 RequiredElements Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:complexType name="SerElementsType">
+		<xs:sequence>
+            <xs:element name="XPath" type="xs:string" minOccurs="1" maxOccurs="unbounded" />
+			<xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax"/>
+		</xs:sequence>
+		<xs:attribute name="XPathVersion" type="xs:anyURI" use="optional" />
+		<xs:anyAttribute namespace="##any" processContents="lax" />
+	</xs:complexType>
+
+	<!--
+	6. Token Assertions
+	-->
+	<xs:attribute name="IncludeToken" type="tns:IncludeTokenOpenType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.1 Token Inclusion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:attribute>
+	<xs:simpleType name="IncludeTokenOpenType">
+		<xs:union memberTypes="tns:IncludeTokenType xs:anyURI" />
+	</xs:simpleType>
+	<xs:simpleType name="IncludeTokenType">
+		<xs:restriction base="xs:anyURI" >
+			<xs:enumeration value="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy/IncludeToken/Never" />
+			<xs:enumeration value="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy/IncludeToken/Once" />
+			<xs:enumeration value="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy/IncludeToken/AlwaysToRecipient" />
+			<xs:enumeration value="http://schemas.xmlsoap.org/ws/2005/07/securitypolicy/IncludeToken/Always" />
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:element name="UsernameToken" type="tns:TokenAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en" >
+				6.3.1 UsernameToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:complexType name="TokenAssertionType">
+		<xs:sequence>
+			<!--
+			*** Accurate content model is nondeterministic ***
+			<xs:element ref="wsp:Policy" minOccurs="0" />
+			-->
+			<xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax"/>
+		</xs:sequence>
+		<xs:attribute ref="tns:IncludeToken" use="optional" />
+		<xs:anyAttribute namespace="##any" processContents="lax" />
+	</xs:complexType>
+
+	<xs:element name="WssUsernameToken10" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.1 UsernameToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="WssUsernameToken11" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.1 UsernameToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:complexType name="QNameAssertionType">
+		<xs:anyAttribute namespace="##any" processContents="lax" />
+	</xs:complexType>
+
+	<xs:element name="IssuedToken" type="tns:IssuedTokenType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.2 IssuedToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:complexType name="IssuedTokenType">
+		<xs:sequence>
+			<xs:element name="Issuer" type="wsa:EndpointReferenceType" minOccurs="0" />
+			<xs:element name="RequestSecurityTokenTemplate" type="tns:RequestSecurityTokenTemplateType" />
+			<!--
+			*** Accurate content model is nondeterministic ***
+			<xs:element ref="wsp:Policy" minOccurs="0" />
+			-->
+			<xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />			
+		</xs:sequence>
+		<xs:attribute ref="tns:IncludeToken" use="optional" />
+		<xs:anyAttribute namespace="##any" processContents="lax" />
+	</xs:complexType>
+	<xs:complexType name="RequestSecurityTokenTemplateType">
+		<xs:sequence>
+			<xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+		</xs:sequence>
+		<xs:attribute name="TrustVersion" type="xs:anyURI" use="optional" />
+		<xs:anyAttribute namespace="##any" processContents="lax" />
+	</xs:complexType>
+
+	<xs:element name="RequireDerivedKeys" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.2 IssuedToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="RequireExternalReference" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.2 IssuedToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="RequireInternalReference" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.2 IssuedToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="X509Token" type="tns:TokenAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.3 X509Token Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="RequireKeyIdentifierReference" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.3 X509Token Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="RequireIssuerSerialReference" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.3 X509Token Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="RequireEmbeddedTokenReference" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.3 X509Token Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="RequireThumbprintReference" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.3 X509Token Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="WssX509V1Token10" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.3 X509Token Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="WssX509V3Token10" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.3 X509Token Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="WssX509Pkcs7Token10" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.3 X509Token Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="WssX509PkiPathV1Token10" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.3 X509Token Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="WssX509V1Token11" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.3 X509Token Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="WssX509V3Token11" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.3 X509Token Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="WssX509Pkcs7Token11" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.3 X509Token Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="WssX509PkiPathV1Token11" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.3 X509Token Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="KerberosToken" type="tns:TokenAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.4 KerberosToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!-- RequireDerivedKeys defined above. -->
+	<!-- RequireKeyIdentifierReference defined above. -->
+
+	<xs:element name="WssKerberosV5ApReqToken11" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.4 KerberosToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="WssGssKerberosV5ApReqToken11" type="tns:QNameAssertionType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.4 KerberosToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="SpnegoContextToken" type="tns:SpnegoContextTokenType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en" >
+				6.3.5 SpnegoContextToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:complexType name="SpnegoContextTokenType">
+		<xs:sequence>
+			<xs:element name="Issuer" type="wsa:EndpointReferenceType" minOccurs="0" />
+			<!--
+			*** Accurate content model is nondeterministic ***
+			<xs:element ref="wsp:Policy" minOccurs="0" />
+			-->
+			<xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+		</xs:sequence>
+		<xs:attribute ref="tns:IncludeToken" use="optional" />
+		<xs:anyAttribute namespace="##any" processContents="lax" />
+	</xs:complexType>
+	<!-- RequireDerivedKeys defined above. -->
+
+	<xs:element name="SecurityContextToken" type="tns:TokenAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.6 SecurityContextToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!-- RequireDerivedKeys defined above. -->
+
+	<xs:element name="RequireExternalUriReference" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.6 SecurityContextToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="SC10SecurityContextToken" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.6 SecurityContextToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="SecureConversationToken" type="tns:SecureConversationTokenType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.7 SecureConversationToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:complexType name="SecureConversationTokenType">
+		<xs:sequence>
+			<xs:element name="Issuer" type="wsa:EndpointReferenceType" minOccurs="0" />
+			<!--
+			*** Accurate content model is nondeterministic ***
+			<xs:element ref="wsp:Policy" minOccurs="0" />
+			-->
+			<xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+		</xs:sequence>
+		<xs:attribute ref="tns:IncludeToken" use="optional" />
+		<xs:anyAttribute namespace="##any" processContents="lax" />
+	</xs:complexType>
+	<!-- RequireDerivedKeys defined above. -->
+	<!-- RequireExternalUriReference defined above. -->
+	<!-- SC10SecurityContextToken defined above. -->
+
+	<xs:element name="BootstrapPolicy" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.7 SecureConversationToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="SamlToken" type="tns:TokenAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en" >
+				6.3.8 SamlToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!-- RequireDerivedKeys defined above. -->
+	<!-- RequireKeyIdentifierReference defined above. -->
+
+	<xs:element name="WssSamlV10Token10" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.8 SamlToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="WssSamlV11Token10" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.8 SamlToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="WssSamlV10Token11" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.8 SamlToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="WssSamlV11Token11" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.8 SamlToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="WssSamlV20Token11" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.8 SamlToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="RelToken" type="tns:TokenAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.9 RelToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!-- RequireDerivedKeys defined above. -->
+	<!-- RequireKeyIdentifierReference defined above. -->
+
+	<xs:element name="WssRelV10Token10" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.9 RelToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="WssRelV20Token10" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.9 RelToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="WssRelV10Token11" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.9 RelToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="WssRelV20Token11" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.9 RelToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="HttpsToken" type="tns:HttpsTokenType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				6.3.10 HttpsToken Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:complexType name="HttpsTokenType">
+		<xs:sequence>
+			<!--
+			*** Accurate content model is nondeterministic ***
+			<xs:element ref="wsp:Policy" minOccurs="0" />
+			-->
+			<xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax"/>
+		</xs:sequence>
+		<xs:attribute name="RequireClientCertificate" type="xs:boolean" use="required" />
+		<xs:anyAttribute namespace="##any" processContents="lax" />
+	</xs:complexType>
+
+	<!--
+	8. Security Binding Assertions
+	-->
+	<xs:element name="AlgorithmSuite" type="tns:NestedPolicyType" >
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:complexType name="NestedPolicyType">
+		<xs:sequence>
+			<xs:element ref="wsp:Policy" />
+			<xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax"/>
+		</xs:sequence>
+		<xs:anyAttribute namespace="##any" processContents="lax" />
+	</xs:complexType>
+
+	<xs:element name="Basic256" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Basic192" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Basic128" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="TripleDes" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Basic256Rsa15" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Basic192Rsa15" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Basic128Rsa15" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="TripleDesRsa15" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Basic256Sha256" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Basic192Sha256" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Basic128Sha256" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="TripleDesSha256" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Basic256Sha256Rsa15" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Basic192Sha256Rsa15" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Basic128Sha256Rsa15" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="TripleDesSha256Rsa15" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="InclusiveC14N" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="SOAPNormalization10" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="STRTransform10" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="XPathFilter20" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.1 AlgorithmSuite Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="Layout" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.2 Layout Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="Strict" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.2 Layout Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="Lax" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.2 Layout Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="LaxTsFirst" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.2 Layout Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="LaxTsLast" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.2 Layout Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="TransportBinding" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.3 TransportBinding Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="TransportToken" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.3 TransportBinding Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!-- AlgorithmSuite defined above. -->
+	<!-- Layout defined above. -->
+
+	<xs:element name="IncludeTimestamp" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.3 TransportBinding Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!-- RequireDerivedKeys defined above. -->
+
+	<xs:element name="SymmetricBinding" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.4 SymmetricBinding Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="EncryptionToken" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.4 SymmetricBinding Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="SignatureToken" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.4 SymmetricBinding Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="ProtectionToken" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.4 SymmetricBinding Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!-- AlgorithmSuite defined above. -->
+	<!-- Layout defined above. -->
+	<!-- IncludeTimestamp defined above. -->
+
+	<xs:element name="EncryptBeforeSigning" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.4 SymmetricBinding Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="EncryptSignature" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.4 SymmetricBinding Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="ProtectTokens" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.4 SymmetricBinding Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!-- RequireDerivedKeys defined above. -->
+	<xs:element name="OnlySignEntireHeadersAndBody" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.4 SymmetricBinding Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="AsymmetricBinding" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.5 AsymmetricBinding Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="InitiatorToken" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.5 AsymmetricBinding Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="RecipientToken" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				8.5 AsymmetricBinding Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!-- AlgorithmSuite defined above. -->
+	<!-- Layout defined above. -->
+	<!-- IncludeTimestamp defined above. -->
+	<!-- EncryptBeforeSigning defined above. -->
+	<!-- EncryptSignature defined above. -->
+	<!-- ProtectTokens defined above. -->
+	<!-- RequireDerivedKeys defined above. -->
+	<!-- OnlySignEntireHeadersAndBody defined above. -->
+
+	<!--
+	9. Supporting Tokens
+	-->
+	<xs:element name="SupportingTokens" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				9.1 SupportingTokens Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!-- AlgorithmSuite defined above. -->
+	<!-- SignedParts defined above. -->
+	<!-- SignedElements defined above. -->
+	<!-- EncryptedParts defined above. -->
+	<!-- EncryptedElements defined above. -->
+
+	<xs:element name="SignedSupportingTokens" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				9.2 SignedSupportingTokens Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!-- AlgorithmSuite defined above. -->
+	<!-- SignedParts defined above. -->
+	<!-- SignedElements defined above. -->
+	<!-- EncryptedParts defined above. -->
+	<!-- EncryptedElements defined above. -->
+
+	<xs:element name="EndorsingSupportingTokens" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				9.3 EndorsingSupportingTokens Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!-- AlgorithmSuite defined above. -->
+	<!-- SignedParts defined above. -->
+	<!-- SignedElements defined above. -->
+	<!-- EncryptedParts defined above. -->
+	<!-- EncryptedElements defined above. -->
+
+	<xs:element name="SignedEndorsingSupportingTokens" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				9.4 SignedEndorsingSupportingTokens Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!-- AlgorithmSuite defined above. -->
+	<!-- SignedParts defined above. -->
+	<!-- SignedElements defined above. -->
+	<!-- EncryptedParts defined above. -->
+	<!-- EncryptedElements defined above. -->
+
+	<!--
+	10. WSS: SOAP Message Security Options
+	-->
+	<xs:element name="Wss10" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				10.1 Wss10 Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="MustSupportRefKeyIdentifier" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				10.1 Wss10 Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="MustSupportRefIssuerSerial" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				10.1 Wss10 Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="MustSupportRefExternalURI" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				10.1 Wss10 Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="MustSupportRefEmbeddedToken" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				10.1 Wss10 Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="Wss11" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				10.2 Wss11 Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<!-- MustSupportRefKeyIdentifier defined above. -->
+	<!-- MustSupportRefIssuerSerial defined above. -->
+	<!-- MustSupportRefExternalURI defined above. -->
+	<!-- MustSupportRefEmbeddedToken defined above. -->
+
+	<xs:element name="MustSupportRefThumbprint" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				10.2 Wss11 Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="MustSupportRefEncryptedKey" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				10.2 Wss11 Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="RequireSignatureConfirmation" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				10.2 Wss11 Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<!--
+	11. WS-Trust Options
+	-->
+	<xs:element name="Trust10" type="tns:NestedPolicyType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				11.1 Trust10 Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+	<xs:element name="MustSupportClientChallenge" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				11.1 Trust10 Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="MustSupportServerChallenge" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				11.1 Trust10 Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="RequireClientEntropy" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				11.1 Trust10 Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="RequireServerEntropy" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				11.1 Trust10 Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:element name="MustSupportIssuedTokens" type="tns:QNameAssertionType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				11.1 Trust10 Assertion
+			</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+
+</xs:schema>

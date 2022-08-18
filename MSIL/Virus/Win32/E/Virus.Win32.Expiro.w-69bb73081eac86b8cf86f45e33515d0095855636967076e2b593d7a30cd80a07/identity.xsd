@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="http://schemas.xmlsoap.org/ws/2005/05/identity"
+    xmlns:tns="http://schemas.xmlsoap.org/ws/2005/05/identity" 
+    xmlns:wsa="http://www.w3.org/2005/08/addressing" 
+    xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" 
+    xmlns:wst="http://schemas.xmlsoap.org/ws/2005/02/trust" 
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+    xmlns:ds="http://www.w3.org/2000/09/xmldsig#" 
+    xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
+    
+    elementFormDefault="qualified" blockDefault="#all" 
+    version="0.1" >
+
+  <xs:import 
+      namespace="http://www.w3.org/2001/04/xmlenc#" 
+      schemaLocation="http://www.w3.org/TR/xmlenc-core/xenc-schema.xsd"/>
+  <xs:import 
+      namespace="http://www.w3.org/2005/08/addressing" 
+      schemaLocation="http://www.w3.org/2005/08/addressing/addressing.xsd"/>
+  <xs:import 
+      namespace="http://schemas.xmlsoap.org/ws/2004/09/policy" 
+      schemaLocation="http://schemas.xmlsoap.org/ws/2004/09/policy/ws-policy.xsd" /> 
+  <xs:import 
+      namespace="http://schemas.xmlsoap.org/ws/2005/02/trust" 
+      schemaLocation="http://schemas.xmlsoap.org/ws/2005/02/trust/ws-trust.xsd" />
+  <xs:import
+      namespace="http://www.w3.org/2000/09/xmldsig#"
+      schemaLocation="http://www.w3.org/TR/xmldsig-core/xmldsig-core-schema.xsd"/>
+  <xs:import
+      namespace="http://www.w3.org/XML/1998/namespace"
+      schemaLocation="http://www.w3.org/2001/xml.xsd"/>
+  
+
+
+  <!-- Standard claim types defined by the InformationCard model -->
+
+  <xs:simpleType name="StringMaxLength255MinLength1">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="255"/>
+      <xs:minLength value="1"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="StringMaxLength255">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="255"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="StringMaxLength64MinLength1">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="64"/>
+      <xs:minLength value="1"/>
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="Base64BinaryMaxSize1MB">
+    <xs:restriction base="xs:base64Binary">
+      <xs:maxLength value="1048576"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Base64BinaryMaxSize16K">
+    <xs:restriction base="xs:base64Binary">
+      <xs:maxLength value="16384"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Base64BinaryMaxSize1K">
+    <xs:restriction base="xs:base64Binary">
+      <xs:maxLength value="1024"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="StringMaxLength684">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="684"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="PositiveUnsignedInt">
+    <xs:restriction base="xs:unsignedInt">
+      <xs:minInclusive value="1"/>
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:complexType name="AttributedEmptyElement">
+    <xs:anyAttribute namespace="##other" processContents="lax" />
+  </xs:complexType>
+
+  <!-- Gender claims are serialized as follows: 0-Unspecified, 1-Male, 2-Female -->
+  <xs:simpleType name="GenderType">
+    <xs:restriction base="xs:token">
+      <xs:enumeration value="0"/>
+      <xs:enumeration value="1"/>
+      <xs:enumeration value="2"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:element name="PrivatePersonalIdentifier" type="tns:Base64BinaryMaxSize1K" />
+
+  <!-- General use elements and attributes -->
+  <xs:attribute name="LangId" type="xs:language" />
+  <xs:element name="IsSelfIssued" type="xs:boolean" />
+  <xs:element name="MasterKey" type="tns:Base64BinaryMaxSize1K" />
+  <xs:element name="PinDigest" type="tns:Base64BinaryMaxSize1K" /> <!--  used to be Pin -->
+  <xs:element name="HashSalt" type="tns:Base64BinaryMaxSize1K" />
+  <xs:element name="IssuerId" type="tns:Base64BinaryMaxSize16K" /> <!--  used to be IssuerKey -->
+  <xs:element name="BackgroundColor" type="xs:int" />
+  <xs:element name="CardName" type="tns:StringMaxLength255MinLength1" />
+  <xs:element name="Issuer" type="xs:anyURI" />
+  <xs:element name="IssuerName" type="tns:StringMaxLength64MinLength1" />
+  <xs:element name="TimeIssued" type="xs:dateTime" />
+  <xs:element name="TimeExpires" type="xs:dateTime" />
+  <xs:element name="TimeLastUpdated" type="xs:dateTime" />
+  <xs:element name="RequireAppliesTo" type="tns:RequireAppliesToType" />
+  <xs:element name="MaxTokenAge" type="xs:unsignedLong" />
+  <xs:element name="OpaqueEndpoint" type="tns:Base64BinaryMaxSize1K" />
+
+  <xs:simpleType name="LogoImageType">
+    <xs:restriction base="xs:token">
+      <xs:enumeration value="image/jpeg"/>
+      <xs:enumeration value="image/gif"/>
+      <xs:enumeration value="image/bmp" />
+      <xs:enumeration value="image/png" />
+      <xs:enumeration value="image/tiff" />
+    </xs:restriction>
+  </xs:simpleType>
+
+
+  
+  <xs:complexType name="BaseClaimType" abstract="true">
+    <xs:attribute name="Uri" type="xs:anyURI" use="required" />
+  </xs:complexType>
+
+
+  <xs:element name="ClaimType" type="tns:ClaimType" />
+  <xs:complexType name="ClaimType">
+    <xs:complexContent>
+      <xs:extension base="tns:BaseClaimType">
+        <xs:attribute name="Optional" type="xs:boolean" />
+        <xs:anyAttribute namespace="##other" processContents="lax" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="SupportedClaimType" type="tns:SupportedClaimType" />
+  <xs:complexType name="SupportedClaimType">
+     <xs:complexContent>
+       <xs:extension base="tns:BaseClaimType">
+         <xs:sequence>
+          <xs:element name="DisplayTag" type="tns:StringMaxLength255MinLength1" minOccurs="0" />
+          <xs:element name="Description" type="tns:StringMaxLength255MinLength1" minOccurs="0" />
+        </xs:sequence>
+        <xs:anyAttribute namespace="##other" processContents="lax" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="InformationCardReference" type="tns:InformationCardReferenceType" />
+  <xs:complexType name="InformationCardReferenceType">
+    <xs:sequence>
+      <xs:element name="CardId" type="xs:anyURI" />
+      <xs:element name="CardVersion" type="tns:PositiveUnsignedInt"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:element name="CardImage" type="tns:CardImageType" />
+  <xs:complexType name="CardImageType">
+    <xs:simpleContent>
+      <xs:extension base="tns:Base64BinaryMaxSize1MB">
+        <xs:attribute name="MimeType" type="tns:LogoImageType" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:element name="DisplayCredentialHint" type="tns:StringMaxLength64MinLength1" />
+  <xs:element name="Username" type="tns:StringMaxLength255MinLength1" />
+
+  <!-- List of credential types -->
+  <xs:element name="UsernamePasswordCredential" type="tns:UsernamePasswordCredentialType" />
+  <xs:complexType name="UsernamePasswordCredentialType">
+    <xs:sequence>
+      <xs:element ref="tns:Username" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:element name="KerberosV5Credential" type="tns:AttributedEmptyElement" />
+
+  <xs:element name="X509V3Credential" type="tns:X509V3CredentialType" />
+  <xs:complexType name="X509V3CredentialType">
+    <xs:sequence>
+      <xs:element ref="ds:X509Data"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:element name="SelfIssuedCredential" type="tns:SelfIssuedCredentialType" />
+  <xs:complexType name="SelfIssuedCredentialType">
+    <xs:sequence>
+      <xs:element ref="tns:PrivatePersonalIdentifier"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:element name="UserCredential" type="tns:UserCredentialType" />
+  <xs:complexType name="UserCredentialType">
+    <xs:sequence>
+      <xs:element ref="tns:DisplayCredentialHint" minOccurs="0" />
+      <xs:choice>
+        <xs:element ref="tns:SelfIssuedCredential" />
+        <xs:element ref="tns:X509V3Credential" />
+        <xs:element ref="tns:KerberosV5Credential" />
+        <xs:element ref="tns:UsernamePasswordCredential" />
+        <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+      </xs:choice>
+    </xs:sequence>
+  </xs:complexType>
+
+
+
+  <xs:element name="TokenService" type="tns:TokenServiceType" />
+  <xs:complexType name="TokenServiceType">
+    <xs:sequence>
+      <xs:element ref="wsa:EndpointReference" />
+      <xs:element ref="tns:UserCredential"/>
+    </xs:sequence>
+    <xs:anyAttribute namespace="##other" processContents="lax" />
+  </xs:complexType>
+
+
+  <xs:element name="TokenServiceList" type="tns:TokenServiceListType" />
+  <xs:complexType name="TokenServiceListType">
+    <xs:sequence>
+      <xs:element ref="tns:TokenService" maxOccurs="128"/>
+    </xs:sequence>
+  </xs:complexType>
+
+
+  <xs:element name="SupportedTokenTypeList" type="tns:SupportedTokenTypeListType" />
+  <xs:complexType name="SupportedTokenTypeListType">
+    <xs:sequence>
+      <xs:element ref="wst:TokenType" maxOccurs="32"/>
+    </xs:sequence>
+  </xs:complexType>
+
+
+  <xs:element name="SupportedClaimTypeList" type="tns:SupportedClaimTypeListType" />
+  <xs:complexType name="SupportedClaimTypeListType">
+    <xs:sequence>
+      <xs:element ref="tns:SupportedClaimType" maxOccurs="128"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="RequireAppliesToType">
+    <xs:attribute name="Optional" type="xs:boolean" />
+  </xs:complexType>
+  
+  <!-- Following element is used by an identity provider (including self-issued
+	identity provider) to issue an InformationCard to a user -->
+  <xs:element name="InformationCard" type="tns:InformationCardType" />
+  <xs:complexType name="InformationCardType">
+    <xs:sequence>
+      <xs:element ref="tns:InformationCardReference" />
+      <xs:element ref="tns:CardName" minOccurs="0" />
+      <xs:element ref="tns:CardImage" minOccurs="0" />
+      <xs:element ref="tns:Issuer" />
+      <xs:element ref="tns:TimeIssued" />
+      <xs:element ref="tns:TimeExpires" minOccurs="0" />
+      <xs:element ref="tns:TokenServiceList" minOccurs="0"/>
+      <xs:element ref="tns:SupportedTokenTypeList" /> <!--  used to be inside an InformationCardPolicy element -->
+      <xs:element ref="tns:SupportedClaimTypeList" /> <!--  used to be inside an InformationCardPolicy element -->
+      <xs:element ref="tns:RequireAppliesTo" minOccurs="0" /> <!--  used to be inside an InformationCardPolicy element -->
+      <xs:element ref="tns:PrivacyNotice" minOccurs="0" /> <!--  used to be IssuerPrivacyPolicy -->
+      <xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute ref="xml:lang" use="required"/>
+  </xs:complexType>
+  <!-- Following element is used by a client InformationCard system to augment the issued 
+  cards with additional implementation specific metadata for storage  -->
+  <xs:element name="InformationCardMetaData" type="tns:InformationCardMetaDataType" />
+  <xs:complexType name="InformationCardMetaDataType">
+    <xs:complexContent>
+      <xs:extension base="tns:InformationCardType">
+        <xs:sequence>
+          <xs:element ref="tns:IsSelfIssued" />
+          <xs:element ref="tns:PinDigest" minOccurs="0"/> <!--  used to be Pin -->
+          <xs:element ref="tns:HashSalt" />
+          <xs:element ref="tns:TimeLastUpdated" />
+          <xs:element ref="tns:IssuerId" /> <!--  used to be IssuerKey  -->
+          <xs:element ref="tns:IssuerName" />
+          <xs:element ref="tns:BackgroundColor" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="ClaimValue" type="tns:ClaimValueType" />
+   <xs:complexType name="ClaimValueType">
+     <xs:complexContent>
+       <xs:extension base="tns:BaseClaimType">
+         <xs:sequence>
+          <xs:element name="Value" type="tns:StringMaxLength684" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="ClaimValueList" type="tns:ClaimValueListType" />
+   <xs:complexType name="ClaimValueListType">
+     <xs:sequence>
+      <xs:element ref="tns:ClaimValue" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="InformationCardPrivateData" type="tns:InformationCardPrivateDataType" />
+   <xs:complexType name="InformationCardPrivateDataType">
+     <xs:sequence>
+      <xs:element ref="tns:MasterKey" />
+      <xs:element ref="tns:ClaimValueList" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+   <!-- Following element is used to represent an InformationCard containing both its
+	metadata and private data (such as key and PII in the case of self-issued
+	cards) in a form suitable for roaming and/or placement on a physical device
+	that can serve them out  -->
+  <xs:element name="RoamingInformationCard" type="tns:RoamingInformationCardType" />
+   <xs:complexType name="RoamingInformationCardType">
+     <xs:sequence>
+      <xs:element ref="tns:InformationCardMetaData" />
+      <xs:element ref="tns:InformationCardPrivateData" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+
+
+  <!-- Following element is used by a client to request a DisplayToken from an STS
+	in its RST request message -->
+  <xs:element name="RequestDisplayToken">
+    <xs:complexType>
+      <xs:attribute ref="tns:LangId" use="optional" />
+      <xs:anyAttribute namespace="##other" processContents="lax" />
+    </xs:complexType>
+  </xs:element>
+  
+  <!-- Following structured type is used when a DisplayToken is formatted as a list
+	of Name-Value pairs -->
+  <xs:element name="DisplayClaim" type="tns:DisplayClaimType" />
+  <xs:complexType name="DisplayClaimType">
+    <xs:complexContent>
+      <xs:extension base="tns:SupportedClaimType">
+        <xs:sequence>
+          <xs:element name="DisplayValue" type="tns:StringMaxLength255MinLength1" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <!-- To simplify processing and rendering the content of DisplayToken when it is
+	returned as an unstructured text blob, limit its textual content to a few types
+	that the client can process.  -->
+   <xs:simpleType name="DisplayTokenTextContentType">
+     <xs:restriction base="xs:token">
+      <xs:enumeration value="text/plain" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Following unstructured type is used when a DisplayToken is formatted as a text
+	blob where the text content type is limited to the few MIME types enumerated above -->
+  <xs:element name="DisplayTokenText" type="tns:DisplayTokenTextType" />
+  <xs:complexType name="DisplayTokenTextType">
+    <xs:simpleContent>
+      <xs:extension base="tns:StringMaxLength255MinLength1">
+        <xs:attribute name="MimeType" type="tns:DisplayTokenTextContentType" use="required" />
+        <xs:anyAttribute namespace="##other" processContents="lax" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:element name="DisplayToken" type="tns:DisplayTokenType" />
+  <xs:complexType name="DisplayTokenType">
+    <xs:choice>
+      <xs:element ref="tns:DisplayClaim" maxOccurs="unbounded" />
+      <xs:element ref="tns:DisplayTokenText" />
+    </xs:choice>
+    <xs:anyAttribute namespace="##other" processContents="lax" />
+  </xs:complexType>
+
+  <!-- Following element is used by an STS to return a requested DisplayToken
+	in its RSTR response message -->
+  <xs:element name="RequestedDisplayToken" type="tns:RequestedDisplayTokenType" />
+  <xs:complexType name="RequestedDisplayTokenType">
+    <xs:sequence>
+      <xs:element ref="tns:DisplayToken" />
+    </xs:sequence>
+    <xs:anyAttribute namespace="##other" processContents="lax" />
+  </xs:complexType>
+
+  <!-- Add definition of policy assertion element using which an Identity Provider
+	can specify a preference for using a "managed presentation" for gathering user credential -->
+  <xs:element name="UseManagedPresentation" type="tns:PolicyAssertionType" />
+  <xs:complexType name="PolicyAssertionType">
+    <xs:sequence>
+      <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+    </xs:sequence>
+    <xs:anyAttribute namespace="##any" processContents="lax" />
+  </xs:complexType>
+  
+  <!-- Add definition of policy assertion element using which a web service can
+	specify the location of its privacy statement -->
+  <xs:element name="PrivacyNotice" type="tns:PrivacyNoticeLocationType" />
+  <xs:complexType name="PrivacyNoticeLocationType">
+    <xs:simpleContent>
+      <xs:extension base="xs:anyURI">
+        <xs:attribute name="Version" use="optional" type="tns:PositiveUnsignedInt"/>
+        <xs:anyAttribute namespace="##any" processContents="lax" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:element name="RoamingStore" type="tns:RoamingStoreType" />
+  <xs:complexType name="RoamingStoreType">
+    <xs:sequence>
+      <xs:element ref="tns:RoamingInformationCard" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:element name="StoreSalt" type="tns:Base64BinaryMaxSize1K" /> <!-- used to be Salt -->
+  
+  <xs:element name="EncryptedStore" type="tns:EncryptedStoreType" />
+  <xs:complexType name="EncryptedStoreType">
+    <xs:sequence>
+      <xs:element ref="tns:StoreSalt" />
+      <xs:element ref="enc:EncryptedData" />
+    </xs:sequence>
+  </xs:complexType>
+  
+</xs:schema>
+

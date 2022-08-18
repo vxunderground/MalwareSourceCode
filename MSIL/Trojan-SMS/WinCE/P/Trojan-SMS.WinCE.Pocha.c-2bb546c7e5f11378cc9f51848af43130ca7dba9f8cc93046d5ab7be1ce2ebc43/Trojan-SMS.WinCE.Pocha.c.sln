@@ -1,0 +1,20 @@
+
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "viconect", "Trojan-SMS.WinCE.Pocha.c-2bb546c7e5f11378cc9f51848af43130ca7dba9f8cc93046d5ab7be1ce2ebc43.csproj", "{483430DE-3F0A-4F33-B438-AE0B5E97F64A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{483430DE-3F0A-4F33-B438-AE0B5E97F64A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{483430DE-3F0A-4F33-B438-AE0B5E97F64A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{483430DE-3F0A-4F33-B438-AE0B5E97F64A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{483430DE-3F0A-4F33-B438-AE0B5E97F64A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

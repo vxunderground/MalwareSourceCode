@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!--
+
+    W3C XML Schema defined in the Web Services Policy 1.5
+    Framework specification
+
+    http://www.w3.org/TR/ws-policy-framework
+
+   Copyright © 2006 World Wide Web Consortium,
+
+   (Massachusetts Institute of Technology, European Research Consortium for
+   Informatics and Mathematics, Keio University). All Rights Reserved. This
+   work is distributed under the W3C® Software License [1] in the hope that
+   it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+   [1] http://www.w3.org/Consortium/Legal/2002/copyright-software-20021231
+
+   $Id: ws-policy.xsd,v 1.2 2007/02/14 16:38:37 fsasaki Exp $
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:tns="http://www.w3.org/ns/ws-policy"
+	xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
+	xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+	targetNamespace="http://www.w3.org/ns/ws-policy" blockDefault="#all"
+	elementFormDefault="qualified">
+	
+  <xs:import 
+      namespace="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
+      schemaLocation="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" />
+
+  <xs:import 
+      namespace="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+      schemaLocation="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" />
+  
+  <xs:import
+      namespace="http://www.w3.org/XML/1998/namespace"
+      schemaLocation="http://www.w3.org/2001/xml.xsd" />
+  
+	<!-- Constructs from the Web Services Policy 1.5 Framework -->
+
+  <xs:element name="Policy" >
+    <xs:complexType>
+
+      <xs:complexContent>
+        <xs:extension base="tns:OperatorContentType" >
+          <xs:attribute name="Name" type="xs:anyURI" />
+          <xs:anyAttribute namespace="##any" processContents="lax" />
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="All" type="tns:OperatorContentType" />
+  <xs:element name="ExactlyOne" type="tns:OperatorContentType" />
+
+  <xs:complexType name="OperatorContentType" >
+    <xs:sequence>
+      <xs:choice minOccurs="0" maxOccurs="unbounded" >
+        <xs:element ref="tns:Policy" />
+        <xs:element ref="tns:All" />
+        <xs:element ref="tns:ExactlyOne" />
+
+        <xs:element ref="tns:PolicyReference" />
+        <xs:any namespace="##other" processContents="lax" />
+      </xs:choice>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:element name="PolicyReference" >
+    <xs:complexType>
+      <xs:sequence>
+        <xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="URI" type="xs:anyURI" use="required" />
+
+      <xs:attribute name="Digest" type="xs:base64Binary" />
+      <xs:attribute name="DigestAlgorithm" 
+                    type="xs:anyURI" 
+                    default="http://www.w3.org/ns/ws-policy/Sha1Exc"
+                    />
+      <xs:anyAttribute namespace="##any" processContents="lax" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:attribute name="Optional" type="xs:boolean" default="false" />
+  <xs:attribute name="Ignorable" type="xs:boolean" default="false" />
+  	
+	<!-- Constructs from the Web Services Policy 1.5 Attachment -->
+
+  <xs:attribute name="PolicyURIs" >
+    <xs:simpleType>
+      <xs:list itemType="xs:anyURI" />
+    </xs:simpleType>
+  </xs:attribute>
+
+  <xs:element name="PolicyAttachment" >
+    <xs:complexType>
+      <xs:sequence>
+
+        <xs:element ref="tns:AppliesTo" />
+        <xs:choice maxOccurs="unbounded" >
+          <xs:element ref="tns:Policy" />
+          <xs:element ref="tns:PolicyReference" />
+        </xs:choice>
+        <!-- omitted only because it causes the content model to be non-determistic
+        <xs:element ref="wsse:Security" minOccurs="0" />
+-->
+        <xs:any namespace="##other"
+		processContents="lax"
+		minOccurs="0"
+		maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:anyAttribute namespace="##any" processContents="lax" />
+
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="AppliesTo" >
+    <xs:complexType>
+      <xs:sequence>
+        <xs:any namespace="##any"
+		processContents="lax"
+		maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:anyAttribute namespace="##any" processContents="lax" />
+
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="URI">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:anyURI">
+          <xs:anyAttribute namespace="##any" processContents="lax" />
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  	
+</xs:schema>

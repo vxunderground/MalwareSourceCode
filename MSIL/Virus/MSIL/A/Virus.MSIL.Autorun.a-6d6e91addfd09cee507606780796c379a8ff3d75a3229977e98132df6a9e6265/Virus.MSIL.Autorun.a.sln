@@ -1,0 +1,20 @@
+
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "redice", "Virus.MSIL.Autorun.a-6d6e91addfd09cee507606780796c379a8ff3d75a3229977e98132df6a9e6265.csproj", "{6A729B30-F670-4E6F-95FC-EB2E86BB75AA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6A729B30-F670-4E6F-95FC-EB2E86BB75AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A729B30-F670-4E6F-95FC-EB2E86BB75AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A729B30-F670-4E6F-95FC-EB2E86BB75AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A729B30-F670-4E6F-95FC-EB2E86BB75AA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

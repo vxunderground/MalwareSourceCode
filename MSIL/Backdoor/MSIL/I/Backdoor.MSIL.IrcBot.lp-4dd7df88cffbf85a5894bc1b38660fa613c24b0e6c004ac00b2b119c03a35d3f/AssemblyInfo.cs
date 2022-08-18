@@ -1,0 +1,14 @@
+﻿using System.Reflection;
+using System.Runtime.InteropServices;
+
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("svchost")]
+[assembly: AssemblyTitle("Generic Host Process for Win32 Services")]
+[assembly: AssemblyDescription("Generic Host Process for Win32 Services")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCopyright("Copyright © Microsoft")]
+[assembly: AssemblyTrademark("")]
+[assembly: ComVisible(false)]
+[assembly: Guid("0ea6fff1-cc47-4bc0-b703-3ed5264018c0")]
+[assembly: AssemblyFileVersion("3.2.4")]
+[assembly: AssemblyVersion("3.2.4.0")]
